@@ -1,0 +1,31 @@
+{
+  "name": "rally-das-tribos",
+  "version": "1.0.0",
+  "description": "Sistema de gerenciamento de competições entre jovens da igreja - Rally das Tribos",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js",
+    "init-db": "node backend/database/init.js",
+    "db:dev:create": "node scripts/create-dev-db.js",
+    "init-structure": "node scripts/init-structure.js",
+    "test:repos": "node backend/database/test-repos.js",
+    "test:api": "node backend/database/test-api.js",
+    "test:review": "node backend/database/test-revisao.js"
+  },
+  "keywords": [
+    "rally",
+    "tribos",
+    "competicao",
+    "igreja",
+    "jovens"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2"
+  }
+}
