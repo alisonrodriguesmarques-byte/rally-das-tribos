@@ -4,9 +4,10 @@
  */
 
 const assert = require('assert');
-const { verifyTestApiServer, getTestDatabase } = require('./test-support');
+const { verifyTestApiServer, getTestDatabase, loginTestAdmin } = require('./test-support');
 const { getDatabaseFingerprint, getOpenDatabaseFingerprint } = require('./connection');
 let BASE_URL = null;
+let authentication;
 
 /**
  * Faz uma requisição HTTP usando fetch
@@ -20,7 +21,9 @@ async function request(path, method = 'GET', data = null) {
   const options = {
     method,
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      Cookie: authentication.cookie,
+      'X-CSRF-Token': authentication.csrfToken
     }
   };
 
@@ -52,6 +55,7 @@ async function testAPI() {
 
   try {
     BASE_URL = await verifyTestApiServer();
+    authentication = await loginTestAdmin(BASE_URL);
     // Teste 1: Listar rallies
     console.log('📋 Teste 1: Listar todos os rallies');
     const listarRallies = await request('/rallies');
@@ -65,6 +69,7 @@ async function testAPI() {
       nome: 'Tentativa de criar Rally ativo diretamente',
       data_inicio: '2026-01-01',
       data_fim: '2026-03-31',
+      tribos_ids: [1, 2],
       status: 'ativo'
     });
     assert.strictEqual(forcedActiveCreation._httpStatus, 400, 'criação não deve iniciar Rally implicitamente');
@@ -73,14 +78,15 @@ async function testAPI() {
       nome: 'Rally 2026 - Jovens',
       descricao: 'Competição anual de jovens',
       data_inicio: '2026-01-01',
-      data_fim: '2026-03-31'
+      data_fim: '2026-03-31',
+      tribos_ids: [1, 2]
     });
     console.log(`Sucesso: ${novoRally.success}`);
     console.log(`Mensagem: ${novoRally.message}`);
     assert.strictEqual(novoRally._httpStatus, 201, 'POST deve criar o rally');
     assert.strictEqual(novoRally.success, true);
     assert.strictEqual(novoRally.data.status, 'planejamento', 'novo rally deve iniciar em planejamento');
-    assert.strictEqual(novoRally.data.tribos.length, 12, 'criação deve manter as 12 tribos oficiais');
+    assert.strictEqual(novoRally.data.tribos.length, 2, 'criação deve conter somente as duas tribos selecionadas');
     const rallyId = novoRally.data.id;
     await assertPersistedStatus(rallyId, 'planejamento');
     console.log(`Rally ID: ${rallyId}; status inicial: ${novoRally.data.status}`);
@@ -104,7 +110,7 @@ async function testAPI() {
       const expectedFingerprint = getDatabaseFingerprint(process.env.RALLY_TEST_DB_PATH);
       assert(opened && await getOpenDatabaseFingerprint(testDb) === expectedFingerprint, 'setup não abriu o banco descartável configurado');
       missingTribo = await testDb.get(
-        'SELECT id, rally_id, nome, descricao, cor FROM tribos WHERE rally_id = ? ORDER BY id LIMIT 1',
+        'SELECT id, rally_id, catalogo_id, nome, descricao, cor FROM tribos WHERE rally_id = ? ORDER BY id LIMIT 1',
         [rallyId]
       );
       assert(missingTribo, 'tribo de setup não encontrada');
@@ -115,7 +121,7 @@ async function testAPI() {
     }
 
     const startIncomplete = await request(`/rallies/${rallyId}/start`, 'PATCH');
-    assert.strictEqual(startIncomplete._httpStatus, 400, 'início sem as 12 tribos deve falhar');
+    assert.strictEqual(startIncomplete._httpStatus, 400, 'início sem as duas tribos deve falhar');
     assert.strictEqual(startIncomplete.success, false);
     await assertPersistedStatus(rallyId, 'planejamento');
 
@@ -124,15 +130,15 @@ async function testAPI() {
       const opened = (await testDb.all('PRAGMA database_list')).find((row) => row.name === 'main');
       assert(opened && await getOpenDatabaseFingerprint(testDb) === getDatabaseFingerprint(process.env.RALLY_TEST_DB_PATH), 'reconexão de setup abriu banco inesperado');
       await testDb.run(
-        'INSERT INTO tribos (id, rally_id, nome, descricao, cor) VALUES (?, ?, ?, ?, ?)',
-        [missingTribo.id, missingTribo.rally_id, missingTribo.nome, missingTribo.descricao, missingTribo.cor]
+        'INSERT INTO tribos (id, rally_id, catalogo_id, nome, descricao, cor) VALUES (?, ?, ?, ?, ?, ?)',
+        [missingTribo.id, missingTribo.rally_id, missingTribo.catalogo_id, missingTribo.nome, missingTribo.descricao, missingTribo.cor]
       );
     } finally {
       await testDb.close();
     }
 
     const startRally = await request(`/rallies/${rallyId}/start`, 'PATCH');
-    assert.strictEqual(startRally._httpStatus, 200, 'início deve funcionar com as 12 tribos oficiais');
+    assert.strictEqual(startRally._httpStatus, 200, 'início deve funcionar com as duas tribos oficiais');
     assert.strictEqual(startRally.success, true);
     assert.strictEqual(startRally.data.status, 'ativo');
     await assertPersistedStatus(rallyId, 'ativo');
@@ -183,7 +189,7 @@ async function testAPI() {
     // Teste 5: Reutilizar as tribos oficiais criadas junto com o Rally
     console.log('Teste 5: Reutilizar as tribos oficiais');
     const tribosCriadas = novoRally.data.tribos || [];
-    assert.strictEqual(tribosCriadas.length, 12);
+    assert.strictEqual(tribosCriadas.length, 2);
     console.log(`Rally possui ${tribosCriadas.length} tribos oficiais`);
     console.log('');
     // Teste 6: Listar tribos do rally
@@ -214,10 +220,12 @@ async function testAPI() {
     // Teste 9: Atualizar tribo
     console.log('✏️  Teste 9: Atualizar tribo');
     const atualizarTribo = await request(`/tribos/${triboId}`, 'PUT', {
-      nome: 'Judá - Tribo de Leão',
+      descricao: 'Descricao da equipe selecionada',
       cor: '#F59E0B'
     });
     console.log(`Sucesso: ${atualizarTribo.success}`);
+    assert.strictEqual(atualizarTribo._httpStatus, 200, 'Metadados da equipe podem ser atualizados sem trocar sua identidade');
+    assert.strictEqual(atualizarTribo.data.nome, buscarTribo.data.nome);
     console.log(`Mensagem: ${atualizarTribo.message}`);
     console.log('');
 
@@ -279,7 +287,8 @@ async function testAPI() {
     const rallyParaCancelar = await request('/rallies', 'POST', {
       nome: 'Rally descartável para teste de cancelamento',
       data_inicio: '2026-04-01',
-      data_fim: '2026-06-30'
+      data_fim: '2026-06-30',
+      tribos_ids: [1, 2]
     });
     assert.strictEqual(rallyParaCancelar._httpStatus, 201);
     const cancelarRally = await request(`/rallies/${rallyParaCancelar.data.id}/cancelar`, 'PATCH');

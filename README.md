@@ -1,10 +1,10 @@
 # Rally das Tribos
 
-Sistema web completo para gerenciamento de competições entre jovens da igreja, focado em gerenciar rallies, tribos, missões, provas e pontuações.
+Projeto de sistema web para gerenciamento de competições entre jovens da igreja, focado em rallies, tribos, missões, provas e pontuações. O desenvolvimento está em andamento; o fluxo atual funciona exclusivamente com dados sintéticos em Linux.
 
 ## 📋 Visão Geral
 
-O sistema substitui o controle manual de competições (rallies) que duram entre 2 e 3 meses, permitindo:
+O objetivo é substituir o controle manual de competições (rallies) que duram entre 2 e 3 meses. O escopo planejado inclui:
 - Cadastro das 12 tribos de Israel
 - Gestão de líderes, auxiliares e participantes
 - Criação de missões semanais
@@ -50,8 +50,10 @@ rally-das-tribos/
 ## 🚀 Instalação
 
 ### Pré-requisitos
-- Node.js (v14 ou superior)
+- Node.js 24 (versão validada: 24.19.0)
 - npm (geralmente instalado com Node.js)
+
+O fluxo atual usa **somente bancos sintéticos em Linux**. Consulte [Desenvolvimento na nuvem](docs/DESENVOLVIMENTO_NUVEM.md) para proteções, limites e testes. Os bancos originais e de referência não fazem parte deste procedimento.
 
 ### Passos
 
@@ -62,23 +64,33 @@ cd rally-das-tribos
 
 2. Instale as dependências:
 ```bash
-npm install
+npm ci --no-audit --no-fund
 ```
 
-3. Inicialize o banco de dados:
+3. Crie explicitamente um banco sintético em diretório novo fora do checkout e inicialize o schema:
 ```bash
+export NODE_ENV=development
+export RALLY_SYNTHETIC_DIR=/workspace/.rally-synthetic-dev
+export RALLY_DEV_DB_PATH="$RALLY_SYNTHETIC_DIR/rally-dev.db"
+npm run db:dev:create
 npm run init-db
 ```
 
-4. Inicie o servidor:
+Se o banco sintético já existir, configure as mesmas variáveis e pule `db:dev:create`; o comando nunca sobrescreve arquivos. As migrações podem ser verificadas novamente com `init-db`.
+
+Se uma restauração do ambiente mudar o inode do arquivo, use o [procedimento de retomada](docs/DESENVOLVIMENTO_NUVEM.md#retomar-um-banco-após-restauração-do-ambiente): `npm run db:synthetic:restore` verifica a identidade interna em modo somente leitura e recupera o marker, sem recriar o banco.
+
+4. Crie o primeiro administrador pelo [procedimento seguro de inicialização](docs/AUTENTICACAO.md#primeiro-administrador), sem senha padrão. Depois inicie o servidor:
 ```bash
 npm start
 ```
 
-5. Acesse no navegador:
+5. O servidor de desenvolvimento escuta somente em loopback. Para validar automaticamente a persistência e os fluxos existentes:
 ```
-http://localhost:3000
+npm test
 ```
+
+Login, sessões e autorização administrativa estão implementados. Consulte [Autenticação](docs/AUTENTICACAO.md) para aprovação de contas e permissões efetivas. Novos Rallys selecionam duas tribos; edições anteriores preservam suas tribos e resultados para consulta. A escolha fica fixa após iniciar, mas os integrantes podem mudar com histórico na tela de [Equipes](docs/EQUIPES.md). Veja [Rallys e tribos](docs/RALLIES_E_TRIBOS.md). Não use esta versão em produção.
 
 ## 📊 Modelagem do Banco de Dados
 
@@ -175,18 +187,18 @@ O desenvolvimento será feito em etapas:
 1. ✅ Estrutura de diretórios
 2. ✅ Arquitetura documentada
 3. ✅ Modelagem do banco de dados
-4. ⏳ Setup do backend (Express + SQLite)
-5. ⏳ Setup do frontend básico
-6. ⏳ Sistema de autenticação
-7. ⏳ Módulo de rallies
-8. ⏳ Módulo de tribos
-9. ⏳ Módulo de participantes
-10. ⏳ Módulo de missões
-11. ⏳ Módulo de provas
-12. ⏳ Módulo de pontuação
-13. ⏳ Ranking
+4. ✅ Base do backend (Express + SQLite sintético em Linux)
+5. ✅ Interface Arena Turquesa nas telas implementadas
+6. ✅ Login, sessões e autorização administrativa em ambiente sintético
+7. ✅ Criação e ciclo de vida de Rallys, com consulta histórica
+8. ✅ Seleção de duas tribos oficiais por nova edição
+9. ✅ Gestão de pessoas e equipes com histórico
+10. ✅ Missões com entrega, aprovação e pontos fixos
+11. ✅ Provas objetivas: quiz, verdadeiro/falso e complete o versículo
+12. ✅ Pontuação integrada de missões e provas objetivas
+13. ✅ Ranking por edição e lançamentos administrativos imediatos
 14. ⏳ Dashboard
-15. ⏳ Responsividade mobile
+15. ✅ Responsividade mobile e testes das telas implementadas
 16. ⏳ Permissões e segurança
 
 ## 📝 Documentação
@@ -201,3 +213,9 @@ Este é um projeto em desenvolvimento. Sugeridos são bem-vindos!
 ## 📄 Licença
 
 MIT
+
+A etapa de [pontuação e ranking](docs/PONTUACOES.md) permite lançar e corrigir pontos com histórico preservado, sem aprovação adicional.
+
+Em [Missões e provas](docs/ATIVIDADES.md), o administrador publica atividades para as tribos da edição. Cabeça e auxiliar enviam entregas; a aprovação gera pontos. Cada prova define seus respondentes e corrige as respostas objetivas automaticamente. Para liberar o acesso, associe explicitamente as contas aprovadas às pessoas das equipes pela tela de Missões. Teste de navegador: `npm run test:activities:ui`.
+
+A [preparação para publicação](docs/PUBLICACAO.md) reúne a interface Arena Turquesa, testes completos (`npm run test:release`), [backup/restauração](docs/BACKUP.md) e [HTTPS local](docs/HTTPS.md). O ambiente continua sintético/local; domínio, hospedagem e configuração de produção com dados reais são a próxima definição.

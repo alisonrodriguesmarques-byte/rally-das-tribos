@@ -6,6 +6,15 @@
 const TriboRepository = require('../repositories/triboRepository');
 
 class TriboController {
+  async catalogo(req, res) {
+    try {
+      const catalog = await this.triboRepository.catalog();
+      return res.json({ success: true, data: catalog, total: catalog.length });
+    } catch {
+      return res.status(500).json({ success: false, error: 'Erro interno do servidor' });
+    }
+  }
+
   constructor(db) {
     this.triboRepository = new TriboRepository(db);
   }
@@ -32,11 +41,14 @@ class TriboController {
         total: tribos.length
       });
     } catch (error) {
+      if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500) {
+        return res.status(error.status).json({ success: false, error: error.message });
+      }
       console.error('Erro ao listar tribos:', error);
       res.status(500).json({
         success: false,
         error: 'Erro ao listar tribos',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }
@@ -71,11 +83,14 @@ class TriboController {
         data: tribo
       });
     } catch (error) {
+      if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500) {
+        return res.status(error.status).json({ success: false, error: error.message });
+      }
       console.error('Erro ao buscar tribo:', error);
       res.status(500).json({
         success: false,
         error: 'Erro ao buscar tribo',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }
@@ -104,11 +119,14 @@ class TriboController {
         total: tribos.length
       });
     } catch (error) {
+      if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500) {
+        return res.status(error.status).json({ success: false, error: error.message });
+      }
       console.error('Erro ao buscar tribos do rally:', error);
       res.status(500).json({
         success: false,
         error: 'Erro ao buscar tribos do rally',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }
@@ -137,11 +155,14 @@ class TriboController {
         total: ranking.length
       });
     } catch (error) {
+      if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500) {
+        return res.status(error.status).json({ success: false, error: error.message });
+      }
       console.error('Erro ao buscar ranking:', error);
       res.status(500).json({
         success: false,
         error: 'Erro ao buscar ranking',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }
@@ -170,11 +191,14 @@ class TriboController {
         total: membros.length
       });
     } catch (error) {
+      if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500) {
+        return res.status(error.status).json({ success: false, error: error.message });
+      }
       console.error('Erro ao buscar membros da tribo:', error);
       res.status(500).json({
         success: false,
         error: 'Erro ao buscar membros da tribo',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }
@@ -185,44 +209,8 @@ class TriboController {
    * @param {Object} res - Response do Express
    */
   async criar(req, res) {
-    try {
-      const { rally_id, nome, descricao, cor } = req.body;
-
-      // Validações
-      if (!rally_id || isNaN(rally_id)) {
-        return res.status(400).json({
-          success: false,
-          error: 'ID do rally é obrigatório'
-        });
-      }
-
-      if (!nome || nome.trim() === '') {
-        return res.status(400).json({
-          success: false,
-          error: 'Nome da tribo é obrigatório'
-        });
-      }
-
-      const tribo = await this.triboRepository.create({
-        rally_id,
-        nome: nome.trim(),
-        descricao: descricao ? descricao.trim() : null,
-        cor: cor || '#3B82F6'
-      });
-
-      res.status(201).json({
-        success: true,
-        message: 'Tribo criada com sucesso',
-        data: tribo
-      });
-    } catch (error) {
-      console.error('Erro ao criar tribo:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Erro ao criar tribo',
-        message: error.message
-      });
-    }
+    return res.status(409).json({ success: false,
+      error: 'Selecione duas tribos oficiais na criação ou no planejamento do Rally; a inclusão isolada não é permitida.' });
   }
 
   /**
@@ -234,6 +222,16 @@ class TriboController {
     try {
       const { id } = req.params;
       const { nome, descricao, cor } = req.body;
+
+      if (['nome', 'catalogo_id', 'rally_id'].some(field => Object.hasOwn(req.body, field))) {
+        return res.status(409).json({ success: false, error: 'A identidade da tribo só pode mudar pela seleção oficial do Rally no planejamento.' });
+      }
+      if (descricao !== undefined && descricao !== null && typeof descricao !== 'string') {
+        return res.status(400).json({ success: false, error: 'A descrição deve ser texto.' });
+      }
+      if (cor !== undefined && (typeof cor !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(cor))) {
+        return res.status(400).json({ success: false, error: 'Informe uma cor hexadecimal válida.' });
+      }
 
       if (!id || isNaN(id)) {
         return res.status(400).json({
@@ -262,7 +260,7 @@ class TriboController {
       // Preparar dados para atualização
       const dataAtualizar = {};
       if (nome !== undefined) dataAtualizar.nome = nome.trim();
-      if (descricao !== undefined) dataAtualizar.descricao = descricao.trim();
+      if (descricao !== undefined) dataAtualizar.descricao = descricao === null ? null : descricao.trim();
       if (cor !== undefined) dataAtualizar.cor = cor;
 
       const tribo = await this.triboRepository.update(id, dataAtualizar);
@@ -273,11 +271,14 @@ class TriboController {
         data: tribo
       });
     } catch (error) {
+      if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500) {
+        return res.status(error.status).json({ success: false, error: error.message });
+      }
       console.error('Erro ao atualizar tribo:', error);
       res.status(500).json({
         success: false,
         error: 'Erro ao atualizar tribo',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }
@@ -288,49 +289,10 @@ class TriboController {
    * @param {Object} res - Response do Express
    */
   async deletar(req, res) {
-    try {
-      const { id } = req.params;
-
-      if (!id || isNaN(id)) {
-        return res.status(400).json({
-          success: false,
-          error: 'ID inválido'
-        });
-      }
-
-      // Verificar se tribo existe
-      const triboExistente = await this.triboRepository.findById(id);
-      if (!triboExistente) {
-        return res.status(404).json({
-          success: false,
-          error: 'Tribo não encontrada'
-        });
-      }
-
-      await this.triboRepository.delete(id);
-
-      res.json({
-        success: true,
-        message: 'Tribo deletada com sucesso'
-      });
-    } catch (error) {
-      console.error('Erro ao deletar tribo:', error);
-
-      // Se o erro for de restrição, retornar 400
-      if (error.message.includes('Não é possível excluir')) {
-        return res.status(400).json({
-          success: false,
-          error: error.message
-        });
-      }
-
-      res.status(500).json({
-        success: false,
-        error: 'Erro ao deletar tribo',
-        message: error.message
-      });
-    }
+    return res.status(409).json({ success: false,
+      error: 'A participação de uma tribo não pode ser excluída isoladamente; use a seleção do Rally no planejamento.' });
   }
+
 }
 
 module.exports = TriboController;

@@ -3,171 +3,37 @@
  * Gerencia a conexão e executa queries
  */
 
-const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const os = require('os');
+const sqlite3 = require('sqlite3');
 const { AsyncLocalStorage } = require('async_hooks');
-
-const DB_PATH = path.resolve(__dirname, '../../data/rally-das-tribos.db');
-const DATA_DIR = path.resolve(__dirname, '../../data');
-const REFERENCE_DB_PATH = process.platform === 'win32'
-  ? path.join(os.homedir(), 'AppData', 'Local', 'Temp', 'rally-das-tribos-audit', 'rally-das-tribos-test.db')
-  : path.join(os.tmpdir(), 'rally-das-tribos-audit', 'rally-das-tribos-test.db');
-const PROTECTED_DB_PATHS = Object.freeze([DB_PATH, REFERENCE_DB_PATH]);
-const verifiedWritableConnections = new WeakSet();
-const WRITE_IDENTITY_UNVERIFIED = 'SQLite handle identity cannot be proven with the current driver; database access is disabled until Etapa B';
-
-function canonicalPath(filePath) {
-  const resolved = path.resolve(filePath);
-  return fs.existsSync(resolved) ? fs.realpathSync(resolved) : resolved;
-}
-
-function normalizedPath(filePath) {
-  const canonical = canonicalPath(filePath);
-  return process.platform === 'win32' ? canonical.toLowerCase() : canonical;
-}
-
-function sameFile(firstPath, secondPath) {
-  if (normalizedPath(firstPath) === normalizedPath(secondPath)) return true;
-  if (!fs.existsSync(firstPath) || !fs.existsSync(secondPath)) return false;
-
-  const first = fs.statSync(firstPath, { bigint: true });
-  const second = fs.statSync(secondPath, { bigint: true });
-  return first.dev === second.dev &&
-    first.ino !== 0n &&
-    second.ino !== 0n &&
-    first.ino === second.ino;
-}
-
-function isWithinDirectory(directory, filePath) {
-  const relative = path.relative(directory, filePath);
-  return relative === '' ||
-    (relative !== '..' &&
-      !relative.startsWith('..' + path.sep) &&
-      !path.isAbsolute(relative));
-}
-
-function assertNotProtectedDatabase(testPath) {
-  const suffixes = ['', '-wal', '-shm', '-journal'];
-  for (const protectedPath of PROTECTED_DB_PATHS) {
-    const candidates = [testPath, ...suffixes.slice(1).map(suffix => testPath + suffix)];
-    const protectedFiles = suffixes.map(suffix => protectedPath + suffix);
-    if (candidates.some(candidate =>
-      protectedFiles.some(protectedFile => normalizedPath(candidate) === normalizedPath(protectedFile)))) {
-      throw new Error('RALLY_TEST_DB_PATH nao pode apontar para um banco protegido');
-    }
-    for (const candidate of candidates) {
-      if (!fs.existsSync(candidate)) continue;
-      for (const protectedFile of protectedFiles) {
-        if (!fs.existsSync(protectedFile)) continue;
-        const first = fs.statSync(candidate, { bigint: true });
-        const second = fs.statSync(protectedFile, { bigint: true });
-        if (first.dev === 0n || second.dev === 0n || first.ino === 0n || second.ino === 0n) {
-          throw new Error('Nao foi possivel confirmar que o banco e seus auxiliares sao distintos dos bancos protegidos');
-        }
-        if (sameFile(candidate, protectedFile)) {
-          throw new Error('O banco nao pode apontar para um banco protegido ou alias dele (incluindo auxiliares SQLite)');
-        }
-      }
-    }
-  }
-}
+const {
+  configuredSyntheticDatabase, validateSyntheticDatabase, getProtectedDatabasePaths
+} = require('./synthetic');
+const configuredConnections = new WeakSet();
 
 function getDevelopmentDatabasePath() {
-  if (process.env.NODE_ENV && process.env.NODE_ENV !== 'development') {
-    throw new Error('Only development mode can select the development database');
-  }
-  const localAppData = process.env.LOCALAPPDATA;
-  const configuredPath = process.env.RALLY_DEV_DB_PATH;
-  if (!localAppData || !path.isAbsolute(localAppData)) {
-    throw new Error('LOCALAPPDATA must be an absolute path for development mode');
-  }
-  if (typeof configuredPath !== 'string' || !path.isAbsolute(configuredPath)) {
-    throw new Error('RALLY_DEV_DB_PATH must be an explicit absolute path');
-  }
-
-  const approvedPath = path.resolve(localAppData, 'RallyDasTribos', 'dev', 'rally-dev.db');
-  const configuredResolved = path.resolve(configuredPath);
-  const pathKey = value => process.platform === 'win32' ? value.toLowerCase() : value;
-  if (pathKey(configuredResolved) !== pathKey(approvedPath)) {
-    throw new Error('RALLY_DEV_DB_PATH must match the approved development database path');
-  }
-
-  const parent = path.dirname(approvedPath);
-  if (!fs.existsSync(parent) || !fs.statSync(parent).isDirectory()) {
-    throw new Error('The development database directory must already exist');
-  }
-  if (!fs.existsSync(approvedPath) || !fs.statSync(approvedPath).isFile()) {
-    throw new Error('The approved development database must be created explicitly before startup');
-  }
-  if (fs.existsSync(approvedPath)) {
-    assertNotProtectedDatabase(fs.realpathSync(approvedPath));
-  }
-  return approvedPath;
+  return configuredSyntheticDatabase('development').dbPath;
 }
 
-/**
- * Returns the explicit, existing, writable disposable database configured for tests.
- * It never creates the database or its parent directory.
- */
 function getTestDatabasePath() {
-  if (process.env.NODE_ENV !== 'test') {
-    throw new Error('Defina NODE_ENV=test antes de usar o banco de testes');
-  }
-
-  const configuredPath = process.env.RALLY_TEST_DB_PATH;
-  if (typeof configuredPath !== 'string' || configuredPath.trim() === '') {
-    throw new Error('RALLY_TEST_DB_PATH deve informar explicitamente o banco descartavel');
-  }
-  if (!path.isAbsolute(configuredPath)) {
-    throw new Error('RALLY_TEST_DB_PATH precisa ser um caminho absoluto');
-  }
-
-  const resolvedPath = path.resolve(configuredPath);
-  if (!fs.existsSync(resolvedPath)) {
-    throw new Error('O banco de teste precisa existir antes da conexao; nenhum arquivo foi criado');
-  }
-  if (!fs.statSync(resolvedPath).isFile()) {
-    throw new Error('RALLY_TEST_DB_PATH precisa apontar para um arquivo SQLite existente');
-  }
-
-  const testPath = fs.realpathSync(resolvedPath);
-  assertNotProtectedDatabase(testPath);
-
-  let sqliteHeaderValid = false;
-  try {
-    const descriptor = fs.openSync(resolvedPath, 'r');
-    try {
-      const header = Buffer.alloc(16);
-      const bytesRead = fs.readSync(descriptor, header, 0, header.length, 0);
-      sqliteHeaderValid =
-        bytesRead === 16 &&
-        header.equals(Buffer.from('SQLite format 3\0', 'ascii'));
-    } finally {
-      fs.closeSync(descriptor);
-    }
-  } catch (error) {
-    throw new Error('Nao foi possivel validar o arquivo SQLite de teste em modo somente leitura');
-  }
-  if (!sqliteHeaderValid) {
-    throw new Error('RALLY_TEST_DB_PATH nao aponta para um arquivo SQLite valido');
-  }
-
-  const dataDirectory = canonicalPath(DATA_DIR);
-  if (isWithinDirectory(dataDirectory, testPath)) {
-    throw new Error('O banco de teste deve ficar fora da pasta de dados da aplicacao');
-  }
-
-  try {
-    fs.accessSync(testPath, fs.constants.R_OK | fs.constants.W_OK);
-    fs.accessSync(path.dirname(testPath), fs.constants.W_OK);
-  } catch (error) {
-    throw new Error('O banco e a pasta do banco de teste precisam permitir leitura e escrita');
-  }
-
-  return testPath;
+  if (process.env.NODE_ENV !== 'test') throw new Error('Defina NODE_ENV=test antes de usar o banco de testes');
+  return configuredSyntheticDatabase('test').dbPath;
 }
+
+function assertSyntheticDatabase(database) {
+  if (!configuredConnections.has(database) || database.closed || !database.db) {
+    throw new Error('A configured synthetic connection is required');
+  }
+  const current = validateSyntheticDatabase(database.synthetic);
+  if (current.id !== database.synthetic.id || current.dev !== database.synthetic.dev || current.ino !== database.synthetic.ino) {
+    throw new Error('Synthetic database configuration changed');
+  }
+}
+
+const nativeRun = (handle, sql) => new Promise((resolve, reject) => handle.run(sql, error => error ? reject(error) : resolve()));
+const nativeGet = (handle, sql) => new Promise((resolve, reject) => handle.get(sql, (error, row) => error ? reject(error) : resolve(row)));
+const nativeAll = (handle, sql) => new Promise((resolve, reject) => handle.all(sql, (error, rows) => error ? reject(error) : resolve(rows)));
 
 function getDatabaseFingerprint(filePath) {
   const realPath = fs.realpathSync(filePath);
@@ -191,61 +57,74 @@ async function getOpenDatabaseFingerprint(database) {
  * Classe para gerenciar a conexão com o banco de dados
  */
 class Database {
-  constructor(dbPath, options = {}) {
-    if (process.env.NODE_ENV === 'test') {
-      const testPath = getTestDatabasePath();
-      if (dbPath !== undefined && !sameFile(dbPath, testPath)) {
-        throw new Error('No modo de teste, Database so pode usar RALLY_TEST_DB_PATH');
-      }
-      this.dbPath = testPath;
-      this.allowCreate = false;
-    } else {
-      if (process.env.NODE_ENV === 'production') {
-        throw new Error('Production database selection is not implemented in this phase');
-      }
-      const developmentPath = getDevelopmentDatabasePath();
-      if (dbPath !== undefined && (!path.isAbsolute(dbPath) || !sameFile(dbPath, developmentPath))) {
-        throw new Error('Development mode only accepts the approved RALLY_DEV_DB_PATH');
-      }
-      this.dbPath = developmentPath;
-      this.allowCreate = false;
+  constructor(dbPath) {
+    this.synthetic = configuredSyntheticDatabase();
+    if (dbPath !== undefined && dbPath !== this.synthetic.dbPath) {
+      throw new Error('Database only accepts the explicit approved synthetic path');
     }
+    this.dbPath = this.synthetic.dbPath;
     this.db = null;
     this.closed = false;
     this.unusableError = null;
+    this.connecting = null;
     this.operationQueue = Promise.resolve();
     this.transactionStorage = new AsyncLocalStorage();
   }
 
   _assertUsable() {
     if (this.unusableError) throw this.unusableError;
-    if (!verifiedWritableConnections.has(this)) {
-      const error = new Error(WRITE_IDENTITY_UNVERIFIED);
-      error.code = 'SQLITE_IDENTITY_UNVERIFIED';
+    if (this.closed || !this.db || !configuredConnections.has(this)) {
+      const error = new Error('Synthetic database connection is not open and configured');
+      error.code = 'SQLITE_CONNECTION_NOT_READY';
       throw error;
     }
   }
 
-  /**
-   * Abre a conexão com o banco de dados
-   * @returns {Promise<never>} This phase deliberately refuses opening SQLite.
-   */
   connect() {
     if (this.unusableError) throw this.unusableError;
-    if (process.env.NODE_ENV === 'test') {
-      const testPath = getTestDatabasePath();
-      if (!sameFile(this.dbPath, testPath)) {
-        throw new Error('A conexao de teste nao corresponde a RALLY_TEST_DB_PATH');
-      }
-    } else {
-      const developmentPath = getDevelopmentDatabasePath();
-      if (!sameFile(this.dbPath, developmentPath)) {
-        throw new Error('A conexao nao corresponde ao banco de desenvolvimento aprovado');
-      }
+    if (this.connecting) return this.connecting;
+    if (configuredConnections.has(this)) return Promise.resolve(this);
+    const selected = configuredSyntheticDatabase();
+    if (selected.dbPath !== this.dbPath || selected.id !== this.synthetic.id || selected.ino !== this.synthetic.ino || selected.dev !== this.synthetic.dev) {
+      throw new Error('Synthetic database changed before connection');
     }
-    const error = new Error(WRITE_IDENTITY_UNVERIFIED);
-    error.code = 'SQLITE_IDENTITY_UNVERIFIED';
-    throw error;
+    this.connecting = this._openSynthetic();
+    return this.connecting;
+  }
+
+  async _openSynthetic() {
+    let handle;
+    try {
+      handle = await new Promise((resolve, reject) => {
+        const opened = new sqlite3.Database(this.dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_FULLMUTEX,
+          error => error ? reject(error) : resolve(opened));
+      });
+      // Provenance and paths are auxiliary checks, not proof of native handle identity.
+      const markerRows = await nativeAll(handle, 'SELECT id, mode, version FROM _rally_synthetic');
+      if (markerRows.length !== 1 || markerRows[0].id !== this.synthetic.id || markerRows[0].mode !== this.synthetic.mode || markerRows[0].version !== 1) {
+        throw new Error('SQLite synthetic provenance is invalid');
+      }
+      validateSyntheticDatabase(this.synthetic);
+      await nativeRun(handle, 'PRAGMA foreign_keys = ON');
+      await nativeGet(handle, 'PRAGMA journal_mode = DELETE');
+      await nativeRun(handle, 'PRAGMA busy_timeout = 5000');
+      const foreignKeys = await nativeGet(handle, 'PRAGMA foreign_keys');
+      const journal = await nativeGet(handle, 'PRAGMA journal_mode');
+      const timeout = await nativeGet(handle, 'PRAGMA busy_timeout');
+      if (foreignKeys.foreign_keys !== 1 || journal.journal_mode !== 'delete' || timeout.timeout !== 5000) {
+        throw new Error('SQLite connection configuration could not be verified');
+      }
+      this.db = handle;
+      this.closed = false;
+      configuredConnections.add(this);
+      return this;
+    } catch (error) {
+      if (handle) await new Promise(resolve => handle.close(() => resolve()));
+      this.db = null;
+      this.closed = true;
+      this.unusableError = error;
+      throw error;
+    }
   }
 
   /**
@@ -326,6 +205,36 @@ class Database {
     return this._enqueueOperation(() => this._allRaw(sql, params));
   }
 
+  exec(sql) {
+    this._assertUsable();
+    if (this._hasActiveTransactionContext()) return this._execRaw(sql);
+    return this._enqueueOperation(() => this._execRaw(sql));
+  }
+
+  migrationTransaction(callback) {
+    assertSyntheticDatabase(this);
+    if (this._hasActiveTransactionContext()) return Promise.reject(new Error('Nested migrations are not allowed'));
+    return this._enqueueOperation(async () => {
+      assertSyntheticDatabase(this);
+      await this._runRaw('PRAGMA foreign_keys = OFF');
+      try {
+        if ((await this._getRaw('PRAGMA foreign_keys')).foreign_keys !== 0) throw new Error('Could not disable FK for migration');
+        return await this._executeTransaction(callback);
+      } finally {
+        if (!this.unusableError) {
+          try {
+            await this._runRaw('PRAGMA foreign_keys = ON');
+            if ((await this._getRaw('PRAGMA foreign_keys')).foreign_keys !== 1) throw new Error('Foreign keys were not restored');
+          } catch (error) {
+            this.unusableError = error;
+            await this._closeRaw();
+            throw error;
+          }
+        }
+      }
+    });
+  }
+
   transaction(callback) {
     const context = this.transactionStorage.getStore();
     if (context?.database === this && context.active) {
@@ -381,7 +290,9 @@ class Database {
             console.error('Database close error:', err.message);
             reject(err);
           } else {
+            configuredConnections.delete(this);
             this.db = null;
+            this.connecting = null;
             this.closed = true;
             console.log('Database connection closed');
             resolve();
@@ -395,8 +306,13 @@ class Database {
   }
 
   close() {
-    if (this._hasActiveTransactionContext()) return this._closeRaw();
-    const pending = this.operationQueue.then(() => this._closeRaw());
+    if (this._hasActiveTransactionContext()) return Promise.reject(new Error('Cannot close a database inside a transaction'));
+    const opening = this.connecting;
+    const pending = this.operationQueue.then(async () => {
+      // A close requested while the native handle is opening must not leak it.
+      if (opening) await opening.catch(() => undefined);
+      return this._closeRaw();
+    });
     this.operationQueue = pending.then(() => undefined, () => undefined);
     return pending;
   }
@@ -406,13 +322,10 @@ class Database {
    * @param {string} filePath - Caminho do arquivo SQL
    * @returns {Promise}
    */
-  async executeScript(filePath) {
-    this._assertUsable();
-    const fs = require('fs');
-    const sql = fs.readFileSync(filePath, 'utf8');
-    if (this._hasActiveTransactionContext()) return this._execRaw(sql);
-    return this._enqueueOperation(() => this._execRaw(sql));
+  async executeScript() {
+    throw new Error('External SQL files are disabled; use the reviewed migration runner');
   }
+
 }
 
 // Instância singleton do banco de dados
@@ -424,19 +337,14 @@ let dbInstanceMode = null;
  * @returns {Database}
  */
 function getDatabase() {
-  const mode = process.env.NODE_ENV === 'test' ? 'test' : 'development';
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Production database selection is not implemented in this phase');
-  }
-  const selectedPath = mode === 'test' ? getTestDatabasePath() : getDevelopmentDatabasePath();
-
-  if (dbInstance && (dbInstanceMode !== mode || !sameFile(dbInstance.dbPath, selectedPath))) {
+  const selected = configuredSyntheticDatabase();
+  if (dbInstance && (dbInstanceMode !== selected.mode || dbInstance.dbPath !== selected.dbPath)) {
     throw new Error('A configuracao do banco mudou depois que a conexao foi criada');
   }
 
   if (!dbInstance) {
-    dbInstance = new Database(selectedPath, { allowCreate: false });
-    dbInstanceMode = mode;
+    dbInstance = new Database(selected.dbPath);
+    dbInstanceMode = selected.mode;
   }
   return dbInstance;
 }
@@ -448,5 +356,6 @@ module.exports = {
   getDatabaseFingerprint,
   getOpenDatabaseFingerprint,
   getDevelopmentDatabasePath,
-  getProtectedDatabasePaths: () => PROTECTED_DB_PATHS.slice()
+  assertSyntheticDatabase,
+  getProtectedDatabasePaths
 };

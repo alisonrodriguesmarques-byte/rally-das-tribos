@@ -8,10 +8,28 @@
     "dev": "node backend/server.js",
     "init-db": "node backend/database/init.js",
     "db:dev:create": "node scripts/create-dev-db.js",
+    "db:synthetic:restore": "node scripts/restore-synthetic-db.js",
+    "db:backup": "node scripts/backup-db.js",
+    "db:restore": "node scripts/restore-db.js",
+    "bootstrap-admin": "node scripts/bootstrap-admin.js",
     "init-structure": "node scripts/init-structure.js",
     "test:repos": "node backend/database/test-repos.js",
     "test:api": "node backend/database/test-api.js",
-    "test:review": "node backend/database/test-revisao.js"
+    "test:review": "node backend/database/test-revisao.js",
+    "test:persistence": "node backend/database/test-persistence.js",
+    "test:bootstrap": "node backend/database/test-bootstrap.js",
+    "test:backup": "node backend/database/test-backup.js",
+    "test:https": "node scripts/test-https.js",
+    "test:functional": "node scripts/test-functional.js",
+    "test:ui": "node scripts/test-login-ui.js",
+    "test:scores:ui": "node scripts/test-scores-ui.js",
+    "test:activities:ui": "node scripts/test-activities-ui.js",
+    "test:teams:ui": "node scripts/test-teams-ui.js",
+    "test:responsive:ui": "node scripts/test-responsive-ui.js",
+    "test:browser": "node scripts/verify-release.js --browser-only",
+    "test:release": "node scripts/verify-release.js",
+    "test": "npm run test:persistence && npm run test:bootstrap && npm run test:backup && npm run test:https && npm run test:functional",
+    "audit:runtime": "npm audit --omit=dev --audit-level=high"
   },
   "keywords": [
     "rally",
@@ -22,10 +40,16 @@
   ],
   "author": "",
   "license": "MIT",
+  "engines": {
+    "node": "24.x"
+  },
   "dependencies": {
-    "express": "^4.18.2",
-    "sqlite3": "^5.1.6",
+    "body-parser": "^1.20.2",
     "cors": "^2.8.5",
-    "body-parser": "^1.20.2"
+    "express": "^4.18.2",
+    "sqlite3": "6.0.1"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
   }
 }

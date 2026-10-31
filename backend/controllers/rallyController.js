@@ -33,11 +33,15 @@ class RallyController {
         total: rallies.length
       });
     } catch (error) {
+      if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500 &&
+          !error.message.startsWith('Não é possível excluir')) {
+        return res.status(error.status).json({ success: false, error: error.message });
+      }
       console.error('Erro ao listar rallies:', error);
       res.status(500).json({
         success: false,
         error: 'Erro ao listar rallies',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }
@@ -72,11 +76,15 @@ class RallyController {
         data: rally
       });
     } catch (error) {
+      if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500 &&
+          !error.message.startsWith('Não é possível excluir')) {
+        return res.status(error.status).json({ success: false, error: error.message });
+      }
       console.error('Erro ao buscar rally:', error);
       res.status(500).json({
         success: false,
         error: 'Erro ao buscar rally',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }
@@ -102,11 +110,15 @@ class RallyController {
         data: rally
       });
     } catch (error) {
+      if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500 &&
+          !error.message.startsWith('Não é possível excluir')) {
+        return res.status(error.status).json({ success: false, error: error.message });
+      }
       console.error('Erro ao buscar rally ativo:', error);
       res.status(500).json({
         success: false,
         error: 'Erro ao buscar rally ativo',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }
@@ -118,10 +130,16 @@ class RallyController {
    */
   async criar(req, res) {
     try {
-      const { nome, descricao, data_inicio, data_fim, status } = req.body;
+      const { nome, descricao, data_inicio, data_fim, status, tribos_ids } = req.body;
 
+      if (Object.hasOwn(req.body, 'legado')) {
+        return res.status(400).json({ success: false, error: 'O marcador de legado não pode ser informado em novas edições.' });
+      }
+      if (descricao !== undefined && descricao !== null && typeof descricao !== 'string') {
+        return res.status(400).json({ success: false, error: 'A descrição deve ser texto.' });
+      }
       // Validações
-      if (!nome || nome.trim() === '') {
+      if (typeof nome !== 'string' || nome.trim() === '') {
         return res.status(400).json({
           success: false,
           error: 'Nome do rally é obrigatório'
@@ -177,7 +195,8 @@ class RallyController {
         nome: nome.trim(),
         descricao: descricao ? descricao.trim() : null,
         data_inicio,
-        data_fim
+        data_fim,
+        tribos_ids
       });
 
       res.status(201).json({
@@ -186,11 +205,15 @@ class RallyController {
         data: rally
       });
     } catch (error) {
+      if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500 &&
+          !error.message.startsWith('Não é possível excluir')) {
+        return res.status(error.status).json({ success: false, error: error.message });
+      }
       console.error('Erro ao criar rally:', error);
       res.status(500).json({
         success: false,
         error: 'Erro ao criar rally',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }
@@ -204,6 +227,16 @@ class RallyController {
     try {
       const { id } = req.params;
       const { nome, descricao, data_inicio, data_fim, status } = req.body;
+
+      if (Object.hasOwn(req.body, 'tribos_ids') || Object.hasOwn(req.body, 'legado')) {
+        return res.status(400).json({ success: false, error: 'Use a seleção específica de tribos; legado não é editável.' });
+      }
+      if (nome !== undefined && typeof nome !== 'string') {
+        return res.status(400).json({ success: false, error: 'O nome deve ser texto.' });
+      }
+      if (descricao !== undefined && descricao !== null && typeof descricao !== 'string') {
+        return res.status(400).json({ success: false, error: 'A descrição deve ser texto.' });
+      }
 
       if (!id || isNaN(id)) {
         return res.status(400).json({
@@ -271,7 +304,7 @@ class RallyController {
       // Preparar dados para atualização
       const dataAtualizar = {};
       if (nome !== undefined) dataAtualizar.nome = nome.trim();
-      if (descricao !== undefined) dataAtualizar.descricao = descricao.trim();
+      if (descricao !== undefined) dataAtualizar.descricao = descricao === null ? null : descricao.trim();
       if (data_inicio !== undefined) dataAtualizar.data_inicio = data_inicio;
       if (data_fim !== undefined) dataAtualizar.data_fim = data_fim;
 
@@ -283,12 +316,26 @@ class RallyController {
         data: rally
       });
     } catch (error) {
+      if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500 &&
+          !error.message.startsWith('Não é possível excluir')) {
+        return res.status(error.status).json({ success: false, error: error.message });
+      }
       console.error('Erro ao atualizar rally:', error);
       res.status(500).json({
         success: false,
         error: 'Erro ao atualizar rally',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
+    }
+  }
+
+  async selecionarTribos(req, res) {
+    try {
+      const rally = await this.rallyRepository.replaceSelection(req.params.id, req.body?.tribos_ids);
+      return res.json({ success: true, data: rally, message: 'Duas tribos selecionadas para esta edição.' });
+    } catch (error) {
+      const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 500 ? error.status : 500;
+      return res.status(status).json({ success: false, error: status === 500 ? 'Erro interno do servidor' : error.message });
     }
   }
 
@@ -324,7 +371,7 @@ class RallyController {
       return res.status(500).json({
         success: false,
         error: 'Erro ao iniciar rally',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }
@@ -367,7 +414,7 @@ class RallyController {
       return res.status(500).json({
         success: false,
         error: 'Erro ao atualizar status do rally',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }
@@ -404,6 +451,10 @@ class RallyController {
         message: 'Rally deletado com sucesso'
       });
     } catch (error) {
+      if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500 &&
+          !error.message.startsWith('Não é possível excluir')) {
+        return res.status(error.status).json({ success: false, error: error.message });
+      }
       console.error('Erro ao deletar rally:', error);
 
       // Se o erro for de restrição, retornar 400
@@ -417,7 +468,7 @@ class RallyController {
       res.status(500).json({
         success: false,
         error: 'Erro ao deletar rally',
-        message: error.message
+        message: 'Erro interno do servidor'
       });
     }
   }

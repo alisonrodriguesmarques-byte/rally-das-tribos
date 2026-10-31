@@ -1,0 +1,35 @@
+name: Verificar candidato
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Instalar dependências fixadas
+        run: npm ci --no-audit --no-fund
+      - name: Instalar navegador de teste
+        run: npx playwright install --with-deps chromium
+      - name: Verificar aplicação, recuperação e navegador
+        run: npm run test:release
+      - name: Guardar relatório e logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verificacao-sintetica
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 14

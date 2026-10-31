@@ -4,7 +4,6 @@
  */
 
 const assert = require('assert');
-const fs = require('fs');
 const path = require('path');
 const { getTestDatabase } = require('./test-support');
 const {
@@ -19,11 +18,10 @@ const TriboRepository = require('../repositories/triboRepository');
 
 function assertProtectedDatabasePathsRejected() {
   const originalTestPath = process.env.RALLY_TEST_DB_PATH;
-  const validTestPath = getTestDatabasePath();
+  // These are strings only: do not stat, open, copy or hardlink protected DBs.
   const protectedPaths = getProtectedDatabasePaths();
   try {
     for (const protectedPath of protectedPaths) {
-      if (!fs.existsSync(protectedPath)) continue;
       const normalizedAlias = path.dirname(protectedPath) + path.sep + '.' + path.sep + path.basename(protectedPath);
       for (const candidate of [protectedPath, normalizedAlias]) {
         process.env.RALLY_TEST_DB_PATH = candidate;
@@ -31,28 +29,6 @@ function assertProtectedDatabasePathsRejected() {
       }
     }
 
-    const referencePath = protectedPaths[1];
-    if (fs.existsSync(referencePath)) {
-      const physicalAlias = path.join(
-        path.dirname(validTestPath),
-        'protected-reference-alias-' + process.pid + '-' + Date.now() + '.db'
-      );
-      let linked = false;
-      try {
-        fs.linkSync(referencePath, physicalAlias);
-        linked = true;
-      } catch (error) {
-        if (!['EPERM', 'EACCES', 'EXDEV', 'ENOTSUP'].includes(error.code)) throw error;
-      }
-      if (linked) {
-        try {
-          process.env.RALLY_TEST_DB_PATH = physicalAlias;
-          assert.throws(() => getTestDatabasePath(), /banco protegido/i);
-        } finally {
-          fs.unlinkSync(physicalAlias);
-        }
-      }
-    }
   } finally {
     process.env.RALLY_TEST_DB_PATH = originalTestPath;
   }
@@ -60,6 +36,7 @@ function assertProtectedDatabasePathsRejected() {
 
 async function testRollbackFailureInvalidatesConnection() {
   const isolated = new Database(process.env.RALLY_TEST_DB_PATH);
+  await isolated.connect();
   const rollbackError = new Error('rollback failure simulation');
   const originalError = new Error('transaction callback failure simulation');
   const statements = [];
@@ -156,7 +133,7 @@ async function testExternalWritesWaitForTransaction(db) {
 }
 
 async function testParticipantCountsAndScoreIntegrity(db, rallyRepo, triboRepo, rally) {
-  const secondRally = await rallyRepo.create({ nome: 'Rally de Integridade de Pontuacao', descricao: 'Fixture isolada', data_inicio: '2026-10-01', data_fim: '2026-12-31' });
+  const secondRally = await rallyRepo.create({ nome: 'Rally de Integridade de Pontuacao', descricao: 'Fixture isolada', data_inicio: '2026-10-01', data_fim: '2026-12-31', tribos_ids: [1, 2] });
   const [tribeA, tribeB] = rally.tribos; const participants=[];
   for (const name of ['Fixture Ativo','Fixture Historico','Fixture Outro Ativo']) { const result=await db.run('INSERT INTO participantes (nome_completo,status) VALUES (?,?)',[name,'ativo']); participants.push(result.id); }
   await db.run('INSERT INTO membros_tribo (tribo_id,participante_id,data_entrada,data_saida,ativo) VALUES (?,?,?,?,0)',[tribeA.id,participants[1],'2026-01-01','2026-02-01']);
@@ -166,7 +143,7 @@ async function testParticipantCountsAndScoreIntegrity(db, rallyRepo, triboRepo, 
   await assert.rejects(db.run('INSERT INTO membros_tribo (tribo_id,participante_id,data_entrada,ativo) VALUES (?,?,?,1)',[tribeB.id,participants[0],'2026-03-02']),/Participante ja esta em uma tribo deste rally|Participante já está em uma tribo deste rally/i);
   const rankingBefore=await triboRepo.getRanking(rally.id); const listed=await triboRepo.findByRally(rally.id);
   assert.strictEqual(listed.find(x=>x.id===tribeA.id).total_participantes,2,'conta participantes ativos distintos e ignora historico inativo');
-  assert.strictEqual((await triboRepo.findByRally(secondRally.id)).length,12); assert.deepStrictEqual(await triboRepo.getRanking(rally.id),rankingBefore,'membros nao alteram ranking');
+  assert.strictEqual((await triboRepo.findByRally(secondRally.id)).length,2); assert.deepStrictEqual(await triboRepo.getRanking(rally.id),rankingBefore,'membros nao alteram ranking');
   const user=await db.run("INSERT INTO usuarios (nome_completo,email,senha_hash,tipo_usuario) VALUES (?, ?, ?, 'admin')",['Fixture Points','fixture-points-'+Date.now()+'@example.invalid','fake-hash']);
   const proof=await db.run("INSERT INTO provas (rally_id,titulo,tipo_prova,data,pontuacao_maxima) VALUES (?,?,'quiz',?,?)",[rally.id,'Prova fixture','2026-03-10',20]);
   const mission=await db.run("INSERT INTO missoes (rally_id,titulo,descricao,data_inicio,data_limite,tipo_missao,tipo_pontuacao,valor_pontuacao) VALUES (?,?,?, ?, ?, 'semanal','fixa',5)",[rally.id,'Missao fixture','Descricao','2026-03-01','2026-03-31']);
@@ -176,10 +153,11 @@ async function testParticipantCountsAndScoreIntegrity(db, rallyRepo, triboRepo, 
   await assert.rejects(insertScore([rally.id,tribeA.id,proof.id,mission.id,'prova','Duas origens',9]),/Apenas uma origem/i);
   const mismatch=/pontuacao deve pertencer ao Rally da tribo|pontuação deve pertencer ao Rally da tribo/i;
   await assert.rejects(insertScore([secondRally.id,tribeA.id,null,null,'manual','Score cruzado',11]),mismatch);
-  await assert.rejects(db.run('UPDATE pontuacoes SET rally_id=? WHERE rally_id=? AND tribo_id=? AND descricao=?',[secondRally.id,rally.id,tribeA.id,'Score sem origem']),mismatch);
-  await assert.rejects(db.run('UPDATE tribos SET rally_id=? WHERE id=?',[secondRally.id,tribeA.id]),/tribo com pontuacoes nao pode mudar de Rally|tribo com pontuações não pode mudar de Rally/i);
+  await assert.rejects(db.run('UPDATE pontuacoes SET rally_id=? WHERE rally_id=? AND tribo_id=? AND descricao=?',[secondRally.id,rally.id,tribeA.id,'Score sem origem']),/lancamento compensatorio|pontuacao deve pertencer/i);
+  assert.strictEqual((await db.get('SELECT rally_id FROM pontuacoes WHERE tribo_id=? LIMIT 1',[tribeA.id])).rally_id,rally.id);
+  await assert.rejects(db.run('UPDATE tribos SET rally_id=? WHERE id=?',[secondRally.id,tribeA.id]),/tribo com pontuacoes nao pode mudar de Rally|tribo com pontuações não pode mudar de Rally|identidade|participacao|participação/i);
   const scores=await db.all('SELECT rally_id,tribo_id,pontos FROM pontuacoes WHERE tribo_id=?',[tribeA.id]); assert.strictEqual(scores.length,2); assert(scores.every(x=>x.rally_id===rally.id));
-  assert.deepStrictEqual(await db.all('PRAGMA foreign_key_check'),[]); const finalRanking=await triboRepo.getRanking(rally.id); assert.strictEqual(finalRanking.find(x=>x.id===tribeA.id).pontuacao_total,12); assert.strictEqual(finalRanking.find(x=>x.id===tribeB.id).pontuacao_total,12); assert.strictEqual(finalRanking.find(x=>x.id===tribeA.id).posicao,1); assert.strictEqual(finalRanking.find(x=>x.id===tribeB.id).posicao,1); assert.strictEqual(finalRanking.find(x=>x.id!==tribeA.id&&x.id!==tribeB.id).posicao,3); assert(finalRanking.some(x=>x.pontuacao_total===0)); assert((await triboRepo.getRanking(secondRally.id)).every(x=>x.pontuacao_total===0));
+  assert.deepStrictEqual(await db.all('PRAGMA foreign_key_check'),[]); const finalRanking=await triboRepo.getRanking(rally.id); assert.strictEqual(finalRanking.find(x=>x.id===tribeA.id).pontuacao_total,12); assert.strictEqual(finalRanking.find(x=>x.id===tribeB.id).pontuacao_total,12); assert.strictEqual(finalRanking.find(x=>x.id===tribeA.id).posicao,1); assert.strictEqual(finalRanking.find(x=>x.id===tribeB.id).posicao,1); assert.strictEqual(finalRanking.length,2); assert((await triboRepo.getRanking(secondRally.id)).every(x=>x.pontuacao_total===0));
   console.log('Active distinct count, duplicate membership, score scope and origin constraints verified');
 }
 
@@ -214,7 +192,8 @@ async function testRepositories() {
       nome: "Rally de Teste 2026",
       descricao: "Rally para testar os repositorios",
       data_inicio: "2026-01-01",
-      data_fim: "2026-03-31"
+      data_fim: "2026-03-31",
+      tribos_ids: [1, 2]
     });
     if (rally.status !== 'planejamento') {
       throw new Error('New Rally must start in planejamento; got ' + rally.status);
@@ -233,10 +212,10 @@ async function testRepositories() {
     console.log(`Rally found: ${foundRally.nome}`);
 
 
-    // RallyRepository.create creates the 12 official tribes automatically.
+    // RallyRepository.create creates exactly the two explicitly selected official tribes.
     const tribosOficiais = rally.tribos || [];
-    if (tribosOficiais.length !== 12) {
-      throw new Error(`Expected 12 official tribes; got ${tribosOficiais.length}`);
+    if (tribosOficiais.length !== 2) {
+      throw new Error(`Expected 2 official tribes; got ${tribosOficiais.length}`);
     }
     console.log(`Rally created ${tribosOficiais.length} official tribes automatically`);
     await testParticipantCountsAndScoreIntegrity(db, rallyRepo, triboRepo, rally);
@@ -245,7 +224,8 @@ async function testRepositories() {
       nome: 'Rally para disputa concorrente',
       descricao: 'Dados descartaveis para teste de transacoes concorrentes',
       data_inicio: '2026-07-01',
-      data_fim: '2026-09-30'
+      data_fim: '2026-09-30',
+      tribos_ids: [1, 2]
     });
     const concurrentResults = await Promise.allSettled([
       rallyRepo.start(concurrentRally.id),
@@ -267,20 +247,15 @@ async function testRepositories() {
     await testNestedTransactionRejected(db);
     await testExternalWritesWaitForTransaction(db);
 
-    // Keep direct coverage of TriboRepository.create with a unique extra tribe.
-    const triboCriada = await triboRepo.create({
-      rally_id: rally.id,
-      nome: "Tribo Extra de Teste",
-      descricao: "Disposable tribe created for repository test",
-      cor: "#3B82F6"
-    });
-    console.log(`Extra tribe created: ${triboCriada.nome} (ID: ${triboCriada.id})`);
-    console.log("");
+    // Generic CRUD cannot add a third tribe outside the Rally selection workflow.
+    await assert.rejects(triboRepo.create({
+      rally_id: rally.id, nome: 'Tribo Extra de Teste', descricao: 'Fixture', cor: '#3B82F6'
+    }), error => error.status === 409);
     // Testar busca de tribos por rally
     console.log('🔍 Buscando tribos do rally...');
     const tribos = await triboRepo.findByRally(rally.id);
-    if (tribos.length !== 13) {
-      throw new Error(`Esperadas 13 tribos no teste; recebidas ${tribos.length}`);
+    if (tribos.length !== 2) {
+      throw new Error(`Esperadas 2 tribos no teste; recebidas ${tribos.length}`);
     }
     console.log(`✅ Encontradas ${tribos.length} tribos:`);
     tribos.forEach(t => console.log(`   - ${t.nome} (${t.total_participantes} participantes, ${t.pontuacao_total} pontos)`));

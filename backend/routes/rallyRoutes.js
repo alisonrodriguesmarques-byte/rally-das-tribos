@@ -25,6 +25,8 @@ function setupRallyRoutes(rallyController) {
   // Atualizar rally
   router.patch('/:id/start', rallyController.iniciar.bind(rallyController));
 
+  router.put('/:id/tribos', rallyController.selecionarTribos.bind(rallyController));
+
   router.put('/:id', rallyController.atualizar.bind(rallyController));
 
   // Encerrar, arquivar ou cancelar por transições explícitas

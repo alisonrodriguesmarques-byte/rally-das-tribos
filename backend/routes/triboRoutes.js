@@ -13,6 +13,8 @@ function setupTriboRoutes(triboController) {
   // Listar todas as tribos
   router.get('/', triboController.listar.bind(triboController));
 
+  router.get('/catalogo', triboController.catalogo.bind(triboController));
+
   // Rotas específicas devem vir antes de rotas com parâmetros dinâmicos
   // Buscar tribos de um rally específico
   router.get('/rally/:rally_id', triboController.buscarPorRally.bind(triboController));

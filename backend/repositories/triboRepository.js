@@ -5,22 +5,25 @@
 
 const BaseRepository = require('./baseRepository');
 
+function domainError(status, message) {
+  const error = new Error(message);
+  error.status = status;
+  error.publicMessage = message;
+  return error;
+}
+
 class TriboRepository extends BaseRepository {
+  async catalog() {
+    return this.all('SELECT id, nome, cor FROM tribos_catalogo ORDER BY id');
+  }
+
   /**
    * Cria uma nova tribo
    * @param {Object} tribo - Dados da tribo
    * @returns {Promise<Object>}
    */
-  async create(tribo) {
-    const { rally_id, nome, descricao, cor } = tribo;
-
-    const sql = `
-      INSERT INTO tribos (rally_id, nome, descricao, cor)
-      VALUES (?, ?, ?, ?)
-    `;
-
-    const result = await this.run(sql, [rally_id, nome, descricao, cor]);
-    return this.findById(result.id);
+  async create() {
+    throw domainError(409, 'As tribos participantes são escolhidas em pares no Rally; use a seleção de tribos da edição.');
   }
 
   /**
@@ -31,7 +34,7 @@ class TriboRepository extends BaseRepository {
   async findById(id) {
     const sql = `
       SELECT
-        t.id, t.rally_id, t.nome, t.descricao, t.cor,
+        t.id, t.rally_id, t.catalogo_id, t.nome, t.descricao, t.cor,
         t.data_criacao, t.data_atualizacao,
         r.nome as rally_nome
       FROM tribos t
@@ -49,7 +52,7 @@ class TriboRepository extends BaseRepository {
   async findByRally(rallyId) {
     const sql = `
       SELECT
-        t.id, t.rally_id, t.nome, t.descricao, t.cor,
+        t.id, t.rally_id, t.catalogo_id, t.nome, t.descricao, t.cor,
         t.data_criacao, t.data_atualizacao,
         (
           SELECT COUNT(DISTINCT mt.participante_id)
@@ -81,7 +84,7 @@ class TriboRepository extends BaseRepository {
   async findAll(options = {}) {
     let sql = `
       SELECT
-        t.id, t.rally_id, t.nome, t.descricao, t.cor,
+        t.id, t.rally_id, t.catalogo_id, t.nome, t.descricao, t.cor,
         t.data_criacao, t.data_atualizacao,
         r.nome as rally_nome
       FROM tribos t
@@ -106,26 +109,22 @@ class TriboRepository extends BaseRepository {
    * @returns {Promise<Object>}
    */
   async update(id, data) {
-    const allowedFields = ['nome', 'descricao', 'cor'];
-    const updates = [];
-    const values = [];
-
-    for (const field of allowedFields) {
-      if (data[field] !== undefined) {
-        updates.push(`${field} = ?`);
-        values.push(data[field]);
+    if (['nome', 'rally_id', 'catalogo_id'].some(field => Object.hasOwn(data, field))) {
+      throw domainError(409, 'A identidade da tribo só pode mudar pela seleção oficial no planejamento do Rally.');
+    }
+    return this.db.transaction(async () => {
+      const owner = await this.get(`SELECT r.legado, r.status FROM tribos t
+        JOIN rallies r ON r.id = t.rally_id WHERE t.id = ?`, [id]);
+      if (!owner) throw domainError(404, 'Tribo não encontrada');
+      if (owner.legado || ['encerrado', 'arquivado', 'cancelado'].includes(owner.status)) {
+        throw domainError(409, 'Esta edição é preservada somente para consulta.');
       }
-    }
-
-    if (updates.length === 0) {
-      throw new Error('Nenhum campo válido para atualização');
-    }
-
-    values.push(id);
-    const sql = `UPDATE tribos SET ${updates.join(', ')} WHERE id = ?`;
-    await this.run(sql, values);
-
-    return this.findById(id);
+      const fields = ['descricao', 'cor'].filter(field => data[field] !== undefined);
+      if (!fields.length) throw domainError(400, 'Nenhum campo válido para atualização');
+      await this.run(`UPDATE tribos SET ${fields.map(field => field + ' = ?').join(', ')} WHERE id = ?`,
+        [...fields.map(field => data[field]), id]);
+      return this.findById(id);
+    });
   }
 
   /**
@@ -133,29 +132,8 @@ class TriboRepository extends BaseRepository {
    * @param {number} id - ID da tribo
    * @returns {Promise<Object>}
    */
-  async delete(id) {
-    const error = (message) => {
-      const err = new Error(message);
-      err.status = 409;
-      throw err;
-    };
-
-    const membrosCount = await super.count('membros_tribo', 'tribo_id = ?', [id]);
-    if (membrosCount > 0) {
-      error('Não é possível excluir tribo com histórico de membros');
-    }
-
-    const pontuacoesCount = await super.count('pontuacoes', 'tribo_id = ?', [id]);
-    if (pontuacoesCount > 0) {
-      error('Não é possível excluir tribo com pontuações registradas');
-    }
-
-    const dinamicasCount = await super.count('dinamicas', 'tribo_id = ?', [id]);
-    if (dinamicasCount > 0) {
-      error('Não é possível excluir tribo com dinâmicas cadastradas');
-    }
-
-    return super.delete('tribos', 'id = ?', [id]);
+  async delete() {
+    throw domainError(409, 'A participação de uma tribo não pode ser excluída isoladamente; use a seleção do Rally durante o planejamento.');
   }
 
   /**

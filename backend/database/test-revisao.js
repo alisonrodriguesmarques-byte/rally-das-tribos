@@ -3,14 +3,15 @@
  * Exige servidor explicitamente vinculado ao banco descartavel.
  */
 const assert = require('assert');
-const { verifyTestApiServer } = require('./test-support');
-const { TRIBOS_OFICIAIS } = require('../constants/tribosOficiais');
+const { verifyTestApiServer, loginTestAdmin } = require('./test-support');
+
 let BASE_URL;
+let authentication;
 
 async function request(route, method = 'GET', body = undefined) {
   const response = await fetch(BASE_URL + route, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Cookie: authentication.cookie, 'X-CSRF-Token': authentication.csrfToken },
     body: body === undefined ? undefined : JSON.stringify(body)
   });
   let data;
@@ -31,12 +32,14 @@ async function persistedStatus(id, expected) {
 
 async function testRevisao() {
   BASE_URL = await verifyTestApiServer();
+  authentication = await loginTestAdmin(BASE_URL);
   const now = Date.now();
   const payload = {
     nome: 'Rally de Revisao ' + now,
     descricao: 'Rally ficticio para regressao da API',
     data_inicio: '2026-11-01',
-    data_fim: '2026-12-31'
+    data_fim: '2026-12-31',
+    tribos_ids: [1, 2]
   };
 
   const activeCreation = await request('/rallies', 'POST', { ...payload, nome: payload.nome + ' ativo', status: 'ativo' });
@@ -49,20 +52,20 @@ async function testRevisao() {
   assert(created.data.data && created.data.data.id, 'resposta da criacao deve conter Rally');
   const rally = created.data.data;
   assert.strictEqual(rally.status, 'planejamento');
-  assert.strictEqual(rally.tribos.length, 12, 'devem ser criadas exatamente 12 tribos');
+  assert.strictEqual(rally.tribos.length, 2, 'devem ser criadas exatamente duas tribos');
   assert.deepStrictEqual(
     rally.tribos.map((tribo) => tribo.nome).sort(),
-    TRIBOS_OFICIAIS.map((tribo) => tribo.nome).sort(),
-    'devem ser as 12 tribos oficiais'
+    ['Rúben', 'Simeão'].sort(),
+    'devem ser somente as duas tribos selecionadas'
   );
   await persistedStatus(rally.id, 'planejamento');
 
   const tribes = await request('/tribos/rally/' + rally.id);
   assertStatus(tribes, 200, 'Listagem de tribos');
-  assert.strictEqual(tribes.data.total, 12);
+  assert.strictEqual(tribes.data.total, 2);
   const ranking = await request('/tribos/ranking/' + rally.id);
   assertStatus(ranking, 200, 'Ranking inicial');
-  assert.strictEqual(ranking.data.total, 12);
+  assert.strictEqual(ranking.data.total, 2);
   assert(ranking.data.data.every((tribo) => tribo.pontuacao_total === 0), 'ranking sem lancamentos deve manter zero pontos');
 
   const started = await request('/rallies/' + rally.id + '/start', 'PATCH');
@@ -80,7 +83,7 @@ async function testRevisao() {
   const rallies = await request('/rallies');
   assertStatus(rallies, 200, 'Listagem de Rallys');
   assert(rallies.data.data.some((item) => item.id === rally.id), 'Rally deve continuar persistido e listado');
-  console.log('test:review passou: planejamento, 12 tribos oficiais, ranking zero, inicio explicito, transicao repetida e persistencia.');
+  console.log('test:review passou: planejamento, duas tribos oficiais, ranking zero, inicio explicito, transicao repetida e persistencia.');
 }
 
 testRevisao().catch((error) => {

@@ -1,14 +1,18 @@
-/**
- * Script de Inicialização do Banco de Dados
- * Executa todas as migrations para criar e configurar o banco
- */
+'use strict';
 
-const { getDatabase } = require('./connection');
-const path = require('path');
+/**
+ * Reviewed migrations for explicitly provisioned synthetic databases only.
+ * SQL files are read once, checked against a committed SHA-256 manifest, and
+ * applied together with their ledger in one transaction. Never accepts SQL paths.
+ */
+const crypto = require('crypto');
 const fs = require('fs');
+const path = require('path');
+const { getDatabase, assertSyntheticDatabase } = require('./connection');
+const manifest = require('./migration-manifest.json');
 
 const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
-const MIGRATIONS = [
+const MIGRATIONS = Object.freeze([
   '001_initial_schema.sql',
   '002_add_indexes.sql',
   '003_create_views.sql',
@@ -16,205 +20,182 @@ const MIGRATIONS = [
   '005_add_triggers.sql',
   '006_planejamento_unique_tribos_ranking.sql',
   '007_ranking_escopo_rally.sql',
-  '008_integridade_pontuacao_rally_tribo.sql'
-];
+  '008_integridade_pontuacao_rally_tribo.sql',
+  '009_auth_sessions.sql',
+  '010_duas_tribos_legado.sql',
+  '011_equipes_historico.sql',
+  '012_pontuacao_imediata.sql',
+  '013_atividades.sql'
+]);
 
-async function rollbackAndRestoreForeignKeys(db, foreignKeysEnabled) {
-  let rollbackError = null;
-  try {
-    await db.run('ROLLBACK');
-  } catch (error) {
-    if (!/no transaction is active/i.test(error.message)) {
-      rollbackError = error;
-    }
-  }
-
-  let pragmaError = null;
-  try {
-    await db.run(`PRAGMA foreign_keys = ${foreignKeysEnabled ? 'ON' : 'OFF'}`);
-  } catch (error) {
-    pragmaError = error;
-  }
-
-  if (rollbackError || pragmaError) {
-    const details = [rollbackError, pragmaError].filter(Boolean).map(error => error.message).join('; ');
-    throw new Error(`Falha ao restaurar o estado da migration: ${details}`);
-  }
+function migrationError(message) {
+  const error = new Error(message);
+  error.code = 'MIGRATION_VALIDATION_FAILED';
+  return error;
 }
+
 /**
- * Executa uma migration específica
- * @param {Database} db - Instância do banco de dados
- * @param {string} migrationFile - Nome do arquivo da migration
+ * Strip only the exact transaction/pragma lines of these hash-pinned scripts.
+ * Trigger bodies keep their BEGIN/END. The runner owns the outer transaction
+ * and the connection owns the foreign-key toggle outside that transaction.
  */
-async function runMigration(db, migrationFile, silent = false) {
-  const migrationPath = path.join(MIGRATIONS_DIR, migrationFile);
-
-  if (!fs.existsSync(migrationPath)) {
-    throw new Error(`Arquivo de migration não encontrado: ${migrationFile}`);
-  }
-
-  if (!silent) {
-    console.log(`📄 Executando: ${migrationFile}`);
-  }
-
-  const foreignKeysRow = await db.get('PRAGMA foreign_keys');
-  const foreignKeysEnabled = Number(foreignKeysRow.foreign_keys) === 1;
-
-  try {
-    await db.executeScript(migrationPath);
-    await db.run(`PRAGMA foreign_keys = ${foreignKeysEnabled ? 'ON' : 'OFF'}`);
-    if (!silent) {
-      console.log(`✅ Concluído: ${migrationFile}`);
+function transactionBody(name, sql) {
+  const lines = sql.replace(/^\uFEFF/, '').split(/\r?\n/);
+  const expected = name.startsWith('006_')
+    ? ['PRAGMA foreign_keys = OFF;', 'BEGIN;', 'COMMIT;', 'PRAGMA foreign_keys = ON;']
+    : name.startsWith('007_')
+      ? ['BEGIN;', 'COMMIT;']
+      : name.startsWith('008_') ? ['BEGIN IMMEDIATE;', 'COMMIT;'] : [];
+  const found = [];
+  const body = lines.filter(line => {
+    if (/^(?:BEGIN(?: IMMEDIATE)?;|COMMIT;|PRAGMA foreign_keys = (?:OFF|ON);)$/.test(line)) {
+      found.push(line);
+      return false;
     }
-  } catch (error) {
-    console.error(`❌ Erro ao executar ${migrationFile}:`, error.message);
+    return true;
+  }).join('\n');
+  if (JSON.stringify(found) !== JSON.stringify(expected)) {
+    throw migrationError('Unexpected migration transaction envelope: ' + name);
+  }
+  return body;
+}
+
+/** Reads fixed local files only. All validation completes before any DB writes. */
+function validateMigrations() {
+  if (manifest.version !== 1 || manifest.algorithm !== 'sha256' ||
+      !Array.isArray(manifest.migrations) || manifest.migrations.length !== MIGRATIONS.length) {
+    throw migrationError('Invalid migration manifest');
+  }
+  return MIGRATIONS.map((name, index) => {
+    const entry = manifest.migrations[index];
+    if (!entry || entry.name !== name || !/^[a-f0-9]{64}$/.test(entry.sha256)) {
+      throw migrationError('Invalid migration manifest entry: ' + name);
+    }
+    const file = path.join(MIGRATIONS_DIR, name);
+    if (!fs.lstatSync(file).isFile()) {
+      throw migrationError('Migration must be a regular local file: ' + name);
+    }
+    const descriptor = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    let bytes;
     try {
-      await rollbackAndRestoreForeignKeys(db, foreignKeysEnabled);
-    } catch (cleanupError) {
-      error.cleanupError = cleanupError;
-      console.error('❌ Erro ao reverter a migration:', cleanupError.message);
+      if (!fs.fstatSync(descriptor).isFile()) throw migrationError('Invalid migration file: ' + name);
+      bytes = fs.readFileSync(descriptor);
+    } finally {
+      fs.closeSync(descriptor);
     }
-    throw error;
+    const checksum = crypto.createHash('sha256').update(bytes).digest('hex');
+    if (checksum !== entry.sha256) throw migrationError('Migration checksum mismatch: ' + name);
+    return Object.freeze({ name, checksum, sql: transactionBody(name, bytes.toString('utf8')) });
+  });
+}
+
+async function readHistory(db, migrations) {
+  const columns = await db.all('PRAGMA table_info(schema_migrations)');
+  if (columns.length === 0) return [];
+  if (!columns.some(column => column.name === 'migration_name') ||
+      !columns.some(column => column.name === 'checksum')) {
+    throw migrationError('Legacy migration ledger has no verified checksums; refusing to adopt it');
+  }
+  const rows = await db.all('SELECT migration_name, checksum FROM schema_migrations ORDER BY id');
+  if (rows.length > migrations.length) throw migrationError('Unknown migration history');
+  for (let index = 0; index < rows.length; index++) {
+    if (rows[index].migration_name !== migrations[index].name || rows[index].checksum !== migrations[index].checksum) {
+      throw migrationError('Migration history is not a verified ordered prefix');
+    }
+  }
+  return rows;
+}
+
+/** Read-only startup gate: initialization is an explicit operation, never implicit. */
+async function assertSchemaReady(db) {
+  assertSyntheticDatabase(db);
+  const migrations = validateMigrations();
+  const history = await readHistory(db, migrations);
+  if (history.length !== migrations.length) {
+    throw migrationError('Synthetic database schema is incomplete; run npm run init-db explicitly');
+  }
+  // The ledger proves which scripts ran, not that their objects still exist.
+  // Require the final essential schema, including integrity triggers and the
+  // uniqueness index. Additional application objects are deliberately permitted.
+  const expectedSchema = manifest.required_schema;
+  if (!expectedSchema || Object.keys(expectedSchema).sort().join(',') !== 'index,table,trigger,view') {
+    throw migrationError('Invalid required schema manifest');
+  }
+  const objects = await db.all("SELECT type, name FROM sqlite_master WHERE type IN ('table', 'view', 'trigger', 'index')");
+  const present = new Set(objects.map(object => object.type + ':' + object.name));
+  for (const [type, names] of Object.entries(expectedSchema)) {
+    if (!Array.isArray(names) || names.length === 0 || names.some(name => typeof name !== 'string' || !/^[a-z_][a-z0-9_]*$/.test(name))) {
+      throw migrationError('Invalid required schema manifest for ' + type);
+    }
+    for (const name of names) {
+      if (!present.has(type + ':' + name)) {
+        throw migrationError('Synthetic database schema is incomplete: missing ' + type + ' ' + name);
+      }
+    }
+  }
+  // Preparing each view also detects broken references, even on empty tables.
+  for (const name of expectedSchema.view) await db.all('SELECT * FROM "' + name + '" LIMIT 0');
+  const foreignKeys = await db.get('PRAGMA foreign_keys');
+  if (foreignKeys.foreign_keys !== 1) throw migrationError('Foreign-key enforcement is disabled');
+  const foreignKeyErrors = await db.all('PRAGMA foreign_key_check');
+  if (foreignKeyErrors.length) throw migrationError('Foreign-key violations in synthetic database');
+  const integrity = await db.all('PRAGMA quick_check');
+  if (integrity.length !== 1 || integrity[0].quick_check !== 'ok') {
+    throw migrationError('Quick integrity check failed in synthetic database');
   }
 }
 
-/**
- * Cria a tabela de controle de migrations (se não existir)
- * @param {Database} db - Instância do banco de dados
- */
-async function createMigrationsTable(db, silent = false) {
-  const sql = `
-    CREATE TABLE IF NOT EXISTS schema_migrations (
+async function migrate(db, options = {}) {
+  assertSyntheticDatabase(db);
+  const migrations = validateMigrations();
+  if (typeof db.migrationTransaction !== 'function' || typeof db.exec !== 'function') {
+    throw migrationError('A verified migration-capable synthetic connection is required');
+  }
+  const result = await db.migrationTransaction(async () => {
+    const history = await readHistory(db, migrations);
+    await db.run(`CREATE TABLE IF NOT EXISTS schema_migrations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       migration_name TEXT UNIQUE NOT NULL,
+      checksum TEXT NOT NULL,
       executed_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `;
-  await db.run(sql);
-  if (!silent) {
-    console.log('✅ Tabela de migrations criada/verificada');
-  }
-}
-
-/**
- * Verifica se uma migration já foi executada
- * @param {Database} db - Instância do banco de dados
- * @param {string} migrationName - Nome da migration
- * @returns {Promise<boolean>}
- */
-async function isMigrationExecuted(db, migrationName) {
-  const row = await db.get(
-    'SELECT * FROM schema_migrations WHERE migration_name = ?',
-    [migrationName]
-  );
-  return !!row;
-}
-
-/**
- * Registra uma migration como executada
- * @param {Database} db - Instância do banco de dados
- * @param {string} migrationName - Nome da migration
- */
-async function markMigrationExecuted(db, migrationName) {
-  await db.run(
-    'INSERT INTO schema_migrations (migration_name) VALUES (?)',
-    [migrationName]
-  );
-}
-
-/**
- * Executa todas as migrations pendentes em uma conexão já aberta.
- * Idempotente: não reaplica arquivos já registrados.
- * Não fecha a conexão e não encerra o processo.
- */
-async function migrate(db, options = {}) {
-  throw new Error('Programmatic migrations are disabled in Fase 00.3.2');
-  const silent = options.silent === true;
-
-  const log = (...args) => {
-    if (!silent) {
-      console.log(...args);
+    )`);
+    const applied = [];
+    for (const migration of migrations.slice(history.length)) {
+      await db.exec(migration.sql);
+      await db.run('INSERT INTO schema_migrations (migration_name, checksum) VALUES (?, ?)',
+        [migration.name, migration.checksum]);
+      applied.push(migration.name);
     }
-  };
-
-  await createMigrationsTable(db, silent);
-
-  for (const migrationFile of MIGRATIONS) {
-    const executed = await isMigrationExecuted(db, migrationFile);
-
-    if (executed) {
-      log(`⏭️  Já executado: ${migrationFile} (pulando)`);
-      continue;
+    const foreignKeyErrors = await db.all('PRAGMA foreign_key_check');
+    if (foreignKeyErrors.length) throw migrationError('Foreign-key violations after migrations');
+    const integrity = await db.all('PRAGMA integrity_check');
+    if (integrity.length !== 1 || integrity[0].integrity_check !== 'ok') {
+      throw migrationError('Integrity check failed after migrations');
     }
-
-    await runMigration(db, migrationFile, silent);
-    await markMigrationExecuted(db, migrationFile);
-  }
+    return { applied, skipped: history.map(row => row.migration_name) };
+  });
+  if (!options.silent) console.log('Migrations applied: ' + result.applied.length + '; already verified: ' + result.skipped.length);
+  return result;
 }
 
 async function migrateCli() {
-  throw new Error('npm run init-db is disabled in Fase 00.3.2; no SQLite connection was opened');
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log('🏆 Rally das Tribos - Inicialização do Banco de Dados');
-  console.log('═══════════════════════════════════════════════════════════\n');
-
+  // Validate local artifacts before selecting or opening any database.
+  validateMigrations();
   const db = getDatabase();
-
   try {
     await db.connect();
-    await migrate(db);
-
-    console.log('═══════════════════════════════════════════════════════════');
-    console.log('✅ Todas as migrations executadas com sucesso!');
-    console.log('═══════════════════════════════════════════════════════════\n');
-
-    const tables = await db.all(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'schema_%'"
-    );
-    console.log(`📊 Total de tabelas criadas: ${tables.length}`);
-
-    const views = await db.all(
-      "SELECT name FROM sqlite_master WHERE type='view'"
-    );
-    console.log(`📊 Total de views criadas: ${views.length}`);
-
-    const triggers = await db.all(
-      "SELECT name FROM sqlite_master WHERE type='trigger'"
-    );
-    console.log(`📊 Total de triggers criados: ${triggers.length}`);
-
-    const indexes = await db.all(
-      "SELECT name FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%'"
-    );
-    console.log(`📊 Total de índices criados: ${indexes.length}`);
-
+    const result = await migrate(db);
+    console.log('Synthetic database schema verified (' + (result.applied.length + result.skipped.length) + ' migrations).');
+  } finally {
     await db.close();
-
-    console.log('\n💚 Banco de dados inicializado com sucesso!');
-    console.log('═══════════════════════════════════════════════════════════\n');
-
-    process.exit(0);
-  } catch (error) {
-    console.error('\n═══════════════════════════════════════════════════════════');
-    console.error('❌ Erro ao inicializar banco de dados');
-    console.error('═══════════════════════════════════════════════════════════');
-    console.error(error);
-    console.error('═══════════════════════════════════════════════════════════\n');
-
-    try {
-      await db.close();
-    } catch (closeError) {
-      // conexão pode não ter sido aberta
-    }
-    process.exit(1);
   }
 }
 
 if (require.main === module) {
-  migrateCli().catch((error) => {
+  migrateCli().catch(error => {
     console.error(error.message);
     process.exitCode = 1;
   });
 }
 
-module.exports = { migrate, MIGRATIONS };
+module.exports = { migrate, MIGRATIONS, validateMigrations, assertSchemaReady };

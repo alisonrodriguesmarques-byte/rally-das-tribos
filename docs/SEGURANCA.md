@@ -1,6 +1,10 @@
 # Segurança e isolamento operacional
 
-**Status:** proposta de configuração; a aplicação manual de ACL relatada abaixo não foi executada nem verificada nesta sessão. SQLite continua bloqueado até autorização específica e evidências do gate.
+**Status histórico do plano Windows:** proposta de configuração; a aplicação manual de ACL relatada abaixo não foi executada nem verificada nesta sessão. Após autorização para a etapa 1, foi implementado um fluxo separado de persistência exclusivamente sintética em Linux: [Desenvolvimento na nuvem](DESENVOLVIMENTO_NUVEM.md). Isso não libera bancos protegidos nem comprova os gates/ACLs Windows descritos abaixo.
+
+**Etapa 2 na nuvem:** login, sessões persistidas por hash, CSRF, aprovação/desativação de contas e guards administrativos foram implementados no fluxo sintético. A matriz efetiva, o bootstrap seguro e as limitações estão em [Autenticação](AUTENTICACAO.md). Isso não habilita produção ou acesso a dados reais.
+
+**Preparação de homologação na nuvem:** [backup/restauração](BACKUP.md), [HTTPS local](HTTPS.md) com cookie Secure e [verificação completa](PUBLICACAO.md) foram acrescentados ao fluxo sintético. A emissão de certificado público, implantação e dados reais continuam separados dessa preparação.
 
 ## Evidências coletadas
 

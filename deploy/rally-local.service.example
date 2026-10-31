@@ -1,0 +1,37 @@
+[Unit]
+Description=Rally das Tribos - validacao sintetica HTTPS em loopback
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=rally
+Group=rally
+WorkingDirectory=/srv/rally-das-tribos
+EnvironmentFile=/etc/rally/rally.env
+# Ajustar o caminho para o executavel Node.js 24 instalado no host.
+ExecStart=/usr/bin/node /srv/rally-das-tribos/backend/server.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+KillSignal=SIGTERM
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+AmbientCapabilities=
+StateDirectory=rally
+StateDirectoryMode=0700
+ReadWritePaths=/var/lib/rally
+
+[Install]
+WantedBy=multi-user.target

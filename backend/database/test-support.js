@@ -86,3 +86,29 @@ module.exports = {
   getTestApiBaseUrl,
   verifyTestApiServer
 };
+
+function getTestAdminCredentials() {
+  assertTestMode();
+  const email = process.env.RALLY_TEST_ADMIN_EMAIL;
+  const password = process.env.RALLY_TEST_ADMIN_PASSWORD;
+  if (!email || !password) throw new Error('Credenciais sinteticas do administrador de teste ausentes');
+  return { email, password };
+}
+
+async function loginTestAdmin(baseUrl = getTestApiBaseUrl()) {
+  const credentials = getTestAdminCredentials();
+  const response = await fetch(baseUrl + '/auth/login', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials), signal: AbortSignal.timeout(10000)
+  });
+  if (response.status !== 200) throw new Error('Login do administrador sintetico falhou: HTTP ' + response.status);
+  const result = await response.json();
+  const cookie = (response.headers.get('set-cookie') || '').split(';')[0];
+  if (!cookie.startsWith('rally_session=') || !result.data?.csrfToken || result.data?.user?.tipo_usuario !== 'admin') {
+    throw new Error('Login sintetico nao retornou sessao administrativa valida');
+  }
+  return { cookie, csrfToken: result.data.csrfToken, user: result.data.user };
+}
+
+module.exports.getTestAdminCredentials = getTestAdminCredentials;
+module.exports.loginTestAdmin = loginTestAdmin;

@@ -1,0 +1,14 @@
+node_modules/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.db.synthetic.json
+.env
+.env.*
+!.env.example
+artifacts/
+*.pem
+*.key
+*.p12
+*.pfx

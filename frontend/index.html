@@ -3,32 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#102b2d">
     <title>Rally das Tribos</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/app.js" defer></script>
+    <script src="/js/scores.js" defer></script>
+    <script src="/js/activities.js" defer></script>
 </head>
 <body>
-    <header>
-        <h1>🏆 Rally das Tribos</h1>
-        <p>Sistema de Gerenciamento de Competições</p>
-    </header>
-
-    <main>
-        <div class="container">
-            <div class="welcome-card">
-                <h2>Bem-vindo ao Rally das Tribos!</h2>
-                <p>Sistema em desenvolvimento...</p>
-                <div class="status">
-                    <span class="status-indicator online"></span>
-                    <span>Sistema Online</span>
+    <a class="skip-link" href="#main">Pular para o conteúdo</a>
+    <div id="app-message" class="app-message" role="status" aria-live="polite" hidden></div>
+    <div id="loading-view" class="initial-loading" role="status"><span class="brand-symbol" aria-hidden="true">R</span><p>Verificando seu acesso…</p></div>
+    <main id="main">
+        <section id="login-view" class="login-layout" aria-labelledby="login-title" hidden>
+            <div class="login-story">
+                <a class="brand" href="/" aria-label="Rally das Tribos, início"><span class="brand-symbol" aria-hidden="true">R</span><span>Rally <strong>das Tribos</strong></span></a>
+                <div class="story-copy">
+                    <p class="eyebrow">Fé. União. Propósito.</p>
+                    <h1 id="login-title">Cada tribo.<br>Um mesmo <span>propósito.</span></h1>
+                    <p>Um lugar para organizar a competição, acompanhar as equipes e construir cada conquista juntos.</p>
+                    <div class="story-detail" aria-hidden="true"><span></span> A jornada começa com a sua equipe.</div>
                 </div>
+                <p class="story-footer">Força Jovem Universal <span>·</span> Rally das Tribos</p>
+            </div>
+            <div class="login-area">
+                <div class="login-card">
+                    <span class="section-kicker">Sua arena está aqui</span>
+                    <h2>Bem-vindo de volta</h2>
+                    <p class="muted">Entre com a conta aprovada pela organização.</p>
+                    <form id="login-form">
+                        <div class="field"><label for="login-email">E-mail</label><input id="login-email" name="email" type="email" autocomplete="username" maxlength="254" placeholder="seu@email.com" required></div>
+                        <div class="field"><label for="login-password">Senha</label><input id="login-password" name="password" type="password" autocomplete="current-password" maxlength="128" required></div>
+                        <p id="login-error" class="form-message error" role="alert" hidden></p>
+                        <button id="login-submit" class="button primary full-width" type="submit">Entrar na arena <span aria-hidden="true">→</span></button>
+                    </form>
+                    <div class="login-help"><span class="help-icon" aria-hidden="true">i</span><p>Ainda não tem acesso? Fale com o administrador da sua organização para criar e aprovar sua conta.</p></div>
+                </div>
+                <p class="login-footnote">Competição com propósito. Acesso com responsabilidade.</p>
+            </div>
+        </section>
+        <div id="workspace-view" class="workspace" hidden>
+            <aside class="sidebar" aria-label="Navegação principal">
+                <a class="brand" href="/" aria-label="Rally das Tribos, início"><span class="brand-symbol" aria-hidden="true">R</span><span>Rally <strong>das Tribos</strong></span></a>
+                <p class="nav-label">Sua organização</p>
+                <nav class="main-nav">
+                    <button id="nav-dashboard" class="nav-item active" type="button" aria-current="page"><span aria-hidden="true">◫</span>Painel</button>
+                    <button id="nav-rallies" class="nav-item" type="button" hidden><span aria-hidden="true">◇</span>Rallys</button>
+                    <button id="nav-missions" class="nav-item" type="button" hidden><span aria-hidden="true">⚑</span>Missões</button>
+                    <button id="nav-exams" class="nav-item" type="button" hidden><span aria-hidden="true">✓</span>Provas</button>
+                    <button id="nav-scores" class="nav-item" type="button" hidden><span aria-hidden="true">♜</span>Pontos e ranking</button>
+                    <button id="nav-teams" class="nav-item" type="button" hidden><span aria-hidden="true">♧</span>Equipes</button>
+                    <button id="nav-users" class="nav-item" type="button" hidden><span aria-hidden="true">♙</span>Contas e acessos<span id="pending-nav-count" class="nav-count" hidden></span></button>
+                </nav>
+                <div class="sidebar-note"><span class="small-dot" aria-hidden="true"></span><p>Juntos em cada etapa.<br><strong>Juntos em cada conquista.</strong></p></div>
+            </aside>
+            <div class="workspace-content">
+                <header class="topbar">
+                    <div><p class="section-kicker">Rally das Tribos</p><p class="topbar-caption">Organização e competição, lado a lado.</p></div>
+                    <div class="session-actions"><div class="session-identity"><strong id="session-name"></strong><span id="session-role"></span></div><button id="logout-button" class="button quiet" type="button">Sair</button></div>
+                </header>
+                <div class="workspace-main">
+                    <section id="dashboard-panel" aria-labelledby="dashboard-title">
+                        <div class="page-heading"><div><p class="section-kicker">Visão geral</p><h1 id="dashboard-title" tabindex="-1">Bem-vindo à arena</h1><p id="dashboard-description" class="muted">Acompanhe as edições e os acessos da organização.</p></div><button id="refresh-dashboard" class="button secondary" type="button" hidden>Atualizar painel</button></div>
+                        <div id="restricted-profile" class="notice" hidden><h2>Seu acesso está confirmado</h2><p>Consulte Missões e Provas para as atividades disponíveis na sua equipe.</p></div>
+                        <div id="admin-dashboard" hidden>
+                            <div class="stats-grid">
+                                <article class="stat-card"><span class="stat-label">Edições cadastradas</span><strong id="stat-rallies">—</strong><span>Histórico da organização</span></article>
+                                <article class="stat-card"><span class="stat-label">Rallys em andamento</span><strong id="stat-active">—</strong><span>Competições com status ativo</span></article>
+                                <article class="stat-card accent"><span class="stat-label">Contas aguardando aprovação</span><strong id="stat-pending">—</strong><button id="review-accounts" class="text-button" type="button">Revisar acessos <span aria-hidden="true">→</span></button></article>
+                            </div>
+                            <section class="surface" aria-labelledby="rallies-title">
+                                <div class="surface-heading"><div><p class="section-kicker">Cada edição, uma história</p><h2 id="rallies-title">Edições do Rally</h2></div><button id="manage-rallies" class="button secondary small" type="button">Gerenciar Rallys</button></div>
+                                <p id="dashboard-error" class="form-message error" role="alert" hidden></p>
+                                <div id="rallies-list" class="rallies-list" aria-live="polite"></div>
+                            </section>
+                        </div>
+                    </section>
+                    <section id="rallies-panel" aria-labelledby="rallies-management-title" hidden>
+                        <div class="page-heading"><div><p class="section-kicker">Edições da competição</p><h1 id="rallies-management-title" tabindex="-1">Rallys e tribos</h1><p class="muted">Escolha duas tribos para cada nova edição e preserve as histórias anteriores.</p></div><button id="new-rally-button" class="button primary" type="button" aria-expanded="false" aria-controls="create-rally-card">Criar Rally <span aria-hidden="true">+</span></button></div>
+                        <section id="create-rally-card" class="surface rally-create-card" aria-labelledby="create-rally-title" hidden>
+                            <div class="surface-heading"><div><p class="section-kicker">Uma nova jornada</p><h2 id="create-rally-title" tabindex="-1">Criar edição</h2></div><button id="cancel-create-rally" class="button quiet small" type="button">Fechar formulário</button></div>
+                            <form id="create-rally-form">
+                                <div class="field"><label for="rally-name">Nome da edição</label><input id="rally-name" name="nome" maxlength="150" required></div>
+                                <div class="field"><label for="rally-description">Descrição <span class="optional-label">(opcional)</span></label><textarea id="rally-description" name="descricao" rows="2" maxlength="2000"></textarea></div>
+                                <div class="form-grid"><div class="field"><label for="rally-start-date">Data de início</label><input id="rally-start-date" name="data_inicio" type="date" required></div><div class="field"><label for="rally-end-date">Data de encerramento</label><input id="rally-end-date" name="data_fim" type="date" required></div></div>
+                                <fieldset class="tribes-fieldset"><legend>Duas tribos participantes</legend><p class="field-help">Selecione duas tribos distintas do catálogo oficial. A escolha poderá ser revista durante o planejamento.</p><div class="form-grid"><div class="field"><label for="rally-tribe-a">Primeira tribo</label><select id="rally-tribe-a" name="tribo_a" required disabled><option value="">Carregando catálogo…</option></select></div><div class="field"><label for="rally-tribe-b">Segunda tribo</label><select id="rally-tribe-b" name="tribo_b" required disabled><option value="">Carregando catálogo…</option></select></div></div></fieldset>
+                                <p class="field-help rally-rule">Após o início, as duas tribos ficam definidas. Integrantes poderão entrar, sair ou mudar de equipe, mantendo o histórico dos vínculos.</p>
+                                <p id="create-rally-feedback" class="form-message" role="status" aria-live="polite" hidden></p>
+                                <div class="form-actions"><button id="create-rally-submit" class="button primary" type="submit" disabled>Criar em planejamento</button></div>
+                            </form>
+                        </section>
+                        <p id="rallies-management-error" class="form-message error" role="alert" hidden></p>
+                        <div class="rally-management-layout">
+                            <section class="surface rally-editions" aria-labelledby="editions-title"><div class="surface-heading"><div><p class="section-kicker">Presente e memória</p><h2 id="editions-title">Todas as edições</h2></div><button id="refresh-rallies" class="button quiet small" type="button">Atualizar</button></div><div id="rally-editions-list" class="rally-editions-list" aria-live="polite"></div></section>
+                            <section class="surface rally-detail-card" aria-label="Detalhes da edição"><div id="rally-detail-empty" class="empty-state"><strong>Conheça cada edição</strong><p>Selecione um Rally para consultar suas tribos e acompanhar a competição.</p></div><div id="rally-detail" hidden></div><p id="rally-detail-error" class="form-message error" role="alert" hidden></p></section>
+                        </div>
+                    </section>
+                    <section id="missions-panel" hidden aria-labelledby="missions-title">
+                        <div class="page-heading"><div><p class="section-kicker">Cada entrega, uma conquista</p><h1 id="missions-title" tabindex="-1">Missões</h1><p class="muted">Acompanhe as atividades da edição, as entregas e suas aprovações.</p></div><button id="refresh-missions" class="button secondary" type="button">Atualizar missões</button></div>
+                        <section class="surface activity-edition-picker" aria-labelledby="missions-edition-label"><div class="field"><label id="missions-edition-label" for="missions-edition">Edição do Rally</label><select id="missions-edition" aria-describedby="missions-edition-help"><option value="">Selecione uma edição</option></select></div><p id="missions-edition-help" class="field-help">Escolha uma edição para consultar as missões disponíveis.</p></section>
+                        <p id="missions-error" class="form-message error" role="alert" tabindex="-1" hidden></p><div id="missions-content" aria-live="polite"></div>
+                    </section>
+                    <section id="exams-panel" hidden aria-labelledby="exams-title">
+                        <div class="page-heading"><div><p class="section-kicker">Conhecimento que soma</p><h1 id="exams-title" tabindex="-1">Provas</h1><p class="muted">Confira quem responde, o prazo e os resultados de cada prova.</p></div><button id="refresh-exams" class="button secondary" type="button">Atualizar provas</button></div>
+                        <section class="surface activity-edition-picker" aria-labelledby="exams-edition-label"><div class="field"><label id="exams-edition-label" for="exams-edition">Edição do Rally</label><select id="exams-edition" aria-describedby="exams-edition-help"><option value="">Selecione uma edição</option></select></div><p id="exams-edition-help" class="field-help">Uma tentativa por respondente. O tempo continua ao sair da página.</p></section>
+                        <p id="exams-error" class="form-message error" role="alert" tabindex="-1" hidden></p><div id="exams-content" aria-live="polite"></div>
+                    </section>
+                    <section id="scores-panel" hidden aria-labelledby="scores-title">
+                        <div class="page-heading"><div><p class="section-kicker">Cada ponto faz parte da história</p><h1 id="scores-title" tabindex="-1">Pontos e ranking</h1><p class="muted">Acompanhe a classificação e os lançamentos da edição.</p></div><button id="refresh-scores" class="button secondary" type="button">Atualizar ranking</button></div>
+                        <section class="surface activity-edition-picker" aria-labelledby="score-edition-label"><div class="field"><label id="score-edition-label" for="score-edition">Edição do Rally</label><select id="score-edition" aria-describedby="score-edition-help"><option value="">Selecione uma edição</option></select></div><p id="score-edition-help" class="field-help">Missões aprovadas, provas e pontos administrativos somam na mesma classificação.</p></section>
+                        <p id="score-error" class="form-message error" role="alert" tabindex="-1" hidden></p><div id="score-content" aria-live="polite"></div>
+                    </section>
+                    <section id="teams-panel" aria-labelledby="teams-title" hidden>
+                        <div class="page-heading"><div><p class="section-kicker">Pessoas que fazem a competição</p><h1 id="teams-title" tabindex="-1">Gestão de equipes</h1><p class="muted">Organize os integrantes de cada edição e preserve cada etapa da sua participação.</p></div><button id="refresh-teams" class="button secondary" type="button">Atualizar equipes</button></div>
+                        <section class="surface teams-edition-picker" aria-labelledby="team-edition-label"><div class="field"><label id="team-edition-label" for="team-rally-select">Edição do Rally</label><select id="team-rally-select"><option value="">Selecione uma edição</option></select></div><p id="teams-edition-note" class="field-help">Escolha uma edição para consultar ou organizar suas equipes.</p></section>
+                        <p id="teams-error" class="form-message error" role="alert" hidden></p>
+                        <div id="teams-empty" class="empty-state"><strong>Cada pessoa, parte de uma história</strong><p>Selecione um Rally para ver as tribos e seus integrantes.</p></div>
+                        <div id="teams-content" hidden>
+                            <div id="team-tribes" class="team-tribes" aria-live="polite"></div>
+                            <section id="team-people-tools" class="surface team-people-surface" aria-labelledby="team-people-title" hidden>
+                                <div class="surface-heading"><div><p class="section-kicker">O cadastro acompanha a pessoa</p><h2 id="team-people-title">Adicionar integrante</h2></div><button id="show-person-form" class="button secondary small" type="button" aria-expanded="false" aria-controls="person-create-card">Cadastrar pessoa</button></div>
+                                <p class="muted small-copy">Busque primeiro no cadastro. A mesma pessoa pode participar de outras edições sem criar um novo cadastro.</p>
+                                <form id="person-search-form" class="person-search-form"><div class="field"><label for="person-search">Buscar por nome ou apelido</label><input id="person-search" type="search" maxlength="120" autocomplete="off" placeholder="Nome ou apelido da pessoa"></div><button id="person-search-submit" class="button secondary" type="submit">Buscar pessoas</button></form>
+                                <p id="person-search-feedback" class="form-message error" role="alert" hidden></p><div id="person-results" class="person-results" aria-live="polite"></div>
+                                <section id="person-create-card" class="person-create-card" aria-labelledby="person-create-title" hidden><h3 id="person-create-title">Novo cadastro de pessoa</h3><p class="field-help">Cadastre apenas nome e, se necessário, apelido. Este cadastro não cria uma conta de acesso.</p><form id="person-create-form"><div class="form-grid"><div class="field"><label for="person-name">Nome da pessoa</label><input id="person-name" name="nome_completo" maxlength="120" autocomplete="name" required></div><div class="field"><label for="person-nickname">Apelido <span class="optional-label">(opcional)</span></label><input id="person-nickname" name="nome_apelido" maxlength="80" autocomplete="off"></div></div><div id="person-edit-reason-field" class="field" hidden><label for="person-edit-reason">Motivo da correção</label><textarea id="person-edit-reason" rows="2" maxlength="500"></textarea><p class="field-help">A correção atualiza o cadastro global. Edições com histórico protegido impedem alterações.</p></div><p id="person-create-feedback" class="form-message" role="status" hidden></p><div class="form-actions"><button id="cancel-person-create" class="button quiet" type="button">Cancelar cadastro</button><button id="person-create-submit" class="button primary" type="submit">Salvar pessoa</button></div></form></section>
+                                <section id="team-assignment-card" class="team-assignment-card" aria-labelledby="team-assignment-title" hidden><div class="surface-heading"><div><p class="section-kicker">Participação nesta edição</p><h3 id="team-assignment-title">Vincular pessoa à equipe</h3><p id="selected-person-name" class="selected-person-name"></p></div><div class="person-selection-actions"><button id="edit-selected-person" class="button secondary small" type="button">Corrigir cadastro</button><button id="cancel-person-selection" class="button quiet small" type="button">Limpar seleção</button></div></div><form id="team-assignment-form"><div class="form-grid"><div class="field"><label for="assignment-tribe">Tribo</label><select id="assignment-tribe" required></select></div><div class="field"><label for="assignment-role">Papel na equipe</label><select id="assignment-role" required><option value="participante">Participante</option><option value="lider">Cabeça da tribo</option><option value="auxiliar">Auxiliar</option></select></div></div><div class="field"><label for="assignment-date">Data de entrada</label><input id="assignment-date" type="date" required></div><div class="field"><label for="assignment-reason">Motivo do vínculo</label><textarea id="assignment-reason" rows="2" maxlength="500" required></textarea></div><p id="team-assignment-feedback" class="form-message" role="status" hidden></p><div class="form-actions"><button id="team-assignment-submit" class="button primary" type="submit">Adicionar à equipe</button></div></form></section>
+                            </section>
+                            <section class="surface team-history-surface" aria-labelledby="team-history-title"><div class="surface-heading"><div><p class="section-kicker">O percurso permanece</p><h2 id="team-history-title">Histórico de integrantes</h2></div><span id="team-history-count" class="tag neutral"></span></div><p class="muted small-copy">Vínculos ativos e encerrados desta edição, com as datas e os papéis de cada período.</p><div id="team-history" class="team-history" aria-live="polite"></div></section>
+                        </div>
+                    </section>
+                    <section id="users-panel" aria-labelledby="users-title" hidden>
+                        <div class="page-heading"><div><p class="section-kicker">Administração</p><h1 id="users-title" tabindex="-1">Contas e acessos</h1><p class="muted">Crie contas e revise quem pode entrar na organização.</p></div><button id="refresh-users" class="button secondary" type="button">Atualizar contas</button></div>
+                        <div class="accounts-layout">
+                            <section class="surface account-form-card" aria-labelledby="new-user-title">
+                                <div class="surface-heading"><div><p class="section-kicker">Novo acesso</p><h2 id="new-user-title">Criar conta</h2></div></div>
+                                <p class="muted small-copy">A nova conta ficará pendente até a aprovação de um administrador.</p>
+                                <form id="create-user-form">
+                                    <div class="field"><label for="new-user-name">Nome</label><input id="new-user-name" name="name" autocomplete="name" maxlength="120" required></div>
+                                    <div class="field"><label for="new-user-email">E-mail</label><input id="new-user-email" name="email" type="email" autocomplete="off" maxlength="254" required></div>
+                                    <div class="field"><label for="new-user-role">Perfil</label><select id="new-user-role" name="role" required><option value="participante">Participante</option><option value="lider">Cabeça da tribo</option><option value="auxiliar">Auxiliar</option></select></div>
+                                    <div class="field"><label for="new-user-password">Senha inicial</label><input id="new-user-password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" aria-describedby="password-help" required><p id="password-help" class="field-help">Use de 12 a 128 caracteres. Combine palavras para criar uma senha forte.</p></div>
+                                    <div class="field"><label for="new-user-confirm">Confirme a senha</label><input id="new-user-confirm" name="passwordConfirmation" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></div>
+                                    <p id="create-user-feedback" class="form-message" role="status" aria-live="polite" hidden></p>
+                                    <button id="create-user-submit" class="button primary full-width" type="submit">Criar conta pendente <span aria-hidden="true">+</span></button>
+                                </form>
+                            </section>
+                            <section class="surface accounts-list-card" aria-labelledby="accounts-list-title">
+                                <div class="surface-heading"><div><p class="section-kicker">Pessoas da organização</p><h2 id="accounts-list-title">Contas cadastradas</h2></div><span id="accounts-total" class="tag neutral">—</span></div>
+                                <p id="users-error" class="form-message error" role="alert" hidden></p>
+                                <div id="users-list" class="users-list" aria-live="polite"></div>
+                            </section>
+                        </div>
+                    </section>
+                </div>
+                <footer class="workspace-footer">Rally das Tribos <span>·</span> Fé que une. Propósito que move.</footer>
             </div>
         </div>
     </main>
-
-    <footer>
-        <p>&copy; 2026 Rally das Tribos - Todos os direitos reservados</p>
-    </footer>
-
-    <script src="js/app.js"></script>
+    <dialog id="decision-dialog" class="decision-dialog" aria-labelledby="decision-title" aria-describedby="decision-description">
+        <form id="decision-form">
+            <p class="section-kicker">Decisão de acesso</p>
+            <h2 id="decision-title">Confirmar alteração</h2>
+            <p id="decision-description" class="muted"></p>
+            <div class="field"><label for="decision-reason">Motivo</label><textarea id="decision-reason" rows="3" maxlength="500" required></textarea><p class="field-help">O motivo ficará registrado no histórico administrativo.</p></div>
+            <div class="dialog-actions"><button id="decision-cancel" class="button secondary" type="button">Cancelar</button><button id="decision-confirm" class="button primary" type="submit">Confirmar</button></div>
+        </form>
+    </dialog>
+    <dialog id="rally-action-dialog" class="decision-dialog" aria-labelledby="rally-action-title" aria-describedby="rally-action-description">
+        <form id="rally-action-form"><p class="section-kicker">Edição do Rally</p><h2 id="rally-action-title">Confirmar ação</h2><p id="rally-action-description" class="muted"></p><div class="dialog-actions"><button id="rally-action-cancel" class="button secondary" type="button">Voltar</button><button id="rally-action-confirm" class="button primary" type="submit">Confirmar</button></div></form>
+    </dialog>
+    <dialog id="team-action-dialog" class="decision-dialog" aria-labelledby="team-action-title" aria-describedby="team-action-description"><form id="team-action-form"><p class="section-kicker">Histórico da equipe</p><h2 id="team-action-title">Atualizar vínculo</h2><p id="team-action-description" class="muted"></p><div id="team-action-tribe-field" class="field"><label for="team-action-tribe">Equipe de destino</label><select id="team-action-tribe"></select></div><div id="team-action-role-field" class="field"><label for="team-action-role">Papel no novo período</label><select id="team-action-role"><option value="participante">Participante</option><option value="lider">Cabeça da tribo</option><option value="auxiliar">Auxiliar</option></select></div><div class="field"><label for="team-action-date">Data da alteração</label><input id="team-action-date" type="date" required></div><div class="field"><label for="team-action-reason">Motivo</label><textarea id="team-action-reason" rows="2" maxlength="500" required></textarea><p class="field-help">O vínculo anterior e o motivo permanecerão no histórico.</p></div><p id="team-action-error" class="form-message error" role="alert" hidden></p><div class="dialog-actions"><button id="team-action-cancel" class="button secondary" type="button">Cancelar</button><button id="team-action-submit" class="button primary" type="submit">Confirmar alteração</button></div></form></dialog>
+    <noscript><p class="noscript-message">Ative o JavaScript no navegador para entrar no Rally das Tribos.</p></noscript>
 </body>
 </html>
