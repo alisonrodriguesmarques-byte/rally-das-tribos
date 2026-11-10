@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f2a44">
+  <title>Rally das Tribos</title>
+  <link rel="icon" href="/img/icone.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <header id="topo" class="topo" hidden>
+    <button id="btn-voltar" class="topo__voltar" aria-label="Voltar" hidden>&#8592;</button>
+    <div class="topo__titulo">
+      <strong id="topo-titulo">Rally das Tribos</strong>
+      <small id="topo-rally"></small>
+    </div>
+    <button id="btn-rally" class="topo__acao" aria-label="Trocar rally">&#9776;</button>
+  </header>
+  <main id="app" class="conteudo" aria-live="polite"></main>
+  <nav id="nav" class="nav" hidden></nav>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script src="/vendor/chart.umd.js" defer></script>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>

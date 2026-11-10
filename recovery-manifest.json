@@ -1,0 +1,397 @@
+[
+  {
+    "file": "backend/package.json",
+    "source_line": 1261,
+    "lines": 16
+  },
+  {
+    "file": ".gitignore",
+    "source_line": 1279,
+    "lines": 5
+  },
+  {
+    "file": "backend/src/config/index.js",
+    "source_line": 1319,
+    "lines": 21
+  },
+  {
+    "file": "backend/src/database/knexfile.js",
+    "source_line": 1342,
+    "lines": 35
+  },
+  {
+    "file": "backend/src/database/connection.js",
+    "source_line": 1379,
+    "lines": 6
+  },
+  {
+    "file": "backend/src/database/migrations/001_esquema_inicial.js",
+    "source_line": 1387,
+    "lines": 311
+  },
+  {
+    "file": "backend/src/database/seeds/001_base.js",
+    "source_line": 1700,
+    "lines": 38
+  },
+  {
+    "file": "backend/src/utils/http.js",
+    "source_line": 1740,
+    "lines": 15
+  },
+  {
+    "file": "backend/src/utils/validar.js",
+    "source_line": 1757,
+    "lines": 71
+  },
+  {
+    "file": "backend/src/utils/texto.js",
+    "source_line": 1830,
+    "lines": 11
+  },
+  {
+    "file": "backend/src/utils/datas.js",
+    "source_line": 1843,
+    "lines": 24
+  },
+  {
+    "file": "backend/src/middlewares/auth.js",
+    "source_line": 1888,
+    "lines": 37
+  },
+  {
+    "file": "backend/src/middlewares/erros.js",
+    "source_line": 1927,
+    "lines": 22
+  },
+  {
+    "file": "backend/src/app.js",
+    "source_line": 1951,
+    "lines": 23
+  },
+  {
+    "file": "backend/src/server.js",
+    "source_line": 1976,
+    "lines": 17
+  },
+  {
+    "file": "backend/src/utils/db.js",
+    "source_line": 2032,
+    "lines": 11
+  },
+  {
+    "file": "backend/src/repositories/auditoriaRepo.js",
+    "source_line": 2045,
+    "lines": 24
+  },
+  {
+    "file": "backend/src/repositories/rallyRepo.js",
+    "source_line": 2071,
+    "lines": 22
+  },
+  {
+    "file": "backend/src/repositories/triboRepo.js",
+    "source_line": 2095,
+    "lines": 69
+  },
+  {
+    "file": "backend/src/repositories/pessoaRepo.js",
+    "source_line": 2166,
+    "lines": 54
+  },
+  {
+    "file": "backend/src/repositories/usuarioRepo.js",
+    "source_line": 2222,
+    "lines": 10
+  },
+  {
+    "file": "backend/src/repositories/categoriaRepo.js",
+    "source_line": 2234,
+    "lines": 10
+  },
+  {
+    "file": "backend/src/repositories/lancamentoRepo.js",
+    "source_line": 2246,
+    "lines": 70
+  },
+  {
+    "file": "backend/src/repositories/missaoRepo.js",
+    "source_line": 2322,
+    "lines": 62
+  },
+  {
+    "file": "backend/src/repositories/dinamicaRepo.js",
+    "source_line": 2386,
+    "lines": 26
+  },
+  {
+    "file": "backend/src/repositories/provaRepo.js",
+    "source_line": 2414,
+    "lines": 109
+  },
+  {
+    "file": "backend/src/services/acessoService.js",
+    "source_line": 2532,
+    "lines": 44
+  },
+  {
+    "file": "backend/src/services/authService.js",
+    "source_line": 2578,
+    "lines": 76
+  },
+  {
+    "file": "backend/src/services/rallyService.js",
+    "source_line": 2656,
+    "lines": 84
+  },
+  {
+    "file": "backend/src/services/tribosService.js",
+    "source_line": 2742,
+    "lines": 120
+  },
+  {
+    "file": "backend/src/services/pessoasService.js",
+    "source_line": 2864,
+    "lines": 61
+  },
+  {
+    "file": "backend/src/services/pontuacaoService.js",
+    "source_line": 2931,
+    "lines": 132
+  },
+  {
+    "file": "backend/src/services/rankingService.js",
+    "source_line": 3065,
+    "lines": 110
+  },
+  {
+    "file": "backend/src/services/missoesService.js",
+    "source_line": 3177,
+    "lines": 162
+  },
+  {
+    "file": "backend/src/services/dinamicasService.js",
+    "source_line": 3341,
+    "lines": 85
+  },
+  {
+    "file": "backend/src/services/correcao.js",
+    "source_line": 3432,
+    "lines": 71
+  },
+  {
+    "file": "backend/src/services/provasService.js",
+    "source_line": 3505,
+    "lines": 443
+  },
+  {
+    "file": "backend/src/controllers/_helpers.js",
+    "source_line": 3959,
+    "lines": 13
+  },
+  {
+    "file": "backend/src/controllers/authController.js",
+    "source_line": 3974,
+    "lines": 22
+  },
+  {
+    "file": "backend/src/controllers/ralliesController.js",
+    "source_line": 3998,
+    "lines": 25
+  },
+  {
+    "file": "backend/src/controllers/tribosController.js",
+    "source_line": 4025,
+    "lines": 30
+  },
+  {
+    "file": "backend/src/controllers/pessoasController.js",
+    "source_line": 4057,
+    "lines": 33
+  },
+  {
+    "file": "backend/src/controllers/categoriasController.js",
+    "source_line": 4092,
+    "lines": 16
+  },
+  {
+    "file": "backend/src/controllers/pontosController.js",
+    "source_line": 4110,
+    "lines": 74
+  },
+  {
+    "file": "backend/src/controllers/missoesController.js",
+    "source_line": 4186,
+    "lines": 53
+  },
+  {
+    "file": "backend/src/controllers/dinamicasController.js",
+    "source_line": 4241,
+    "lines": 30
+  },
+  {
+    "file": "backend/src/controllers/provasController.js",
+    "source_line": 4273,
+    "lines": 69
+  },
+  {
+    "file": "backend/src/routes/index.js",
+    "source_line": 4344,
+    "lines": 95
+  },
+  {
+    "file": "backend/tests/api.test.js",
+    "source_line": 4448,
+    "lines": 151
+  },
+  {
+    "file": "frontend/public/index.html",
+    "source_line": 4881,
+    "lines": 26
+  },
+  {
+    "file": "frontend/public/img/icone.svg",
+    "source_line": 4909,
+    "lines": 1
+  },
+  {
+    "file": "frontend/public/css/app.css",
+    "source_line": 4912,
+    "lines": 146
+  },
+  {
+    "file": "frontend/public/js/api.js",
+    "source_line": 5153,
+    "lines": 29
+  },
+  {
+    "file": "frontend/public/js/estado.js",
+    "source_line": 5184,
+    "lines": 47
+  },
+  {
+    "file": "frontend/public/js/ui.js",
+    "source_line": 5233,
+    "lines": 245
+  },
+  {
+    "file": "frontend/public/js/main.js",
+    "source_line": 5480,
+    "lines": 138
+  },
+  {
+    "file": "frontend/public/js/views/login.js",
+    "source_line": 5620,
+    "lines": 19
+  },
+  {
+    "file": "frontend/public/js/views/senha.js",
+    "source_line": 5641,
+    "lines": 20
+  },
+  {
+    "file": "frontend/public/js/views/mais.js",
+    "source_line": 5663,
+    "lines": 30
+  },
+  {
+    "file": "frontend/public/js/views/painel.js",
+    "source_line": 5705,
+    "lines": 52
+  },
+  {
+    "file": "frontend/public/js/views/ranking.js",
+    "source_line": 5759,
+    "lines": 81
+  },
+  {
+    "file": "frontend/public/js/views/inicio.js",
+    "source_line": 5842,
+    "lines": 37
+  },
+  {
+    "file": "frontend/public/js/views/lancamentos.js",
+    "source_line": 5881,
+    "lines": 115
+  },
+  {
+    "file": "frontend/public/js/views/lancar.js",
+    "source_line": 5998,
+    "lines": 145
+  },
+  {
+    "file": "frontend/public/js/views/tribos.js",
+    "source_line": 6149,
+    "lines": 19
+  },
+  {
+    "file": "frontend/public/js/views/tribo.js",
+    "source_line": 6170,
+    "lines": 108
+  },
+  {
+    "file": "frontend/public/js/views/pessoas.js",
+    "source_line": 6280,
+    "lines": 120
+  },
+  {
+    "file": "frontend/public/js/views/pessoa.js",
+    "source_line": 6402,
+    "lines": 73
+  },
+  {
+    "file": "frontend/public/js/views/rallies.js",
+    "source_line": 6477,
+    "lines": 81
+  },
+  {
+    "file": "frontend/public/js/views/categorias.js",
+    "source_line": 6560,
+    "lines": 30
+  },
+  {
+    "file": "frontend/public/js/views/missoes.js",
+    "source_line": 6596,
+    "lines": 173
+  },
+  {
+    "file": "frontend/public/js/views/missao.js",
+    "source_line": 6771,
+    "lines": 59
+  },
+  {
+    "file": "frontend/public/js/views/dinamicas.js",
+    "source_line": 6832,
+    "lines": 105
+  },
+  {
+    "file": "frontend/public/js/views/provas.js",
+    "source_line": 6948,
+    "lines": 84
+  },
+  {
+    "file": "frontend/public/js/views/responder.js",
+    "source_line": 7039,
+    "lines": 121
+  },
+  {
+    "file": "frontend/public/js/views/tentativa.js",
+    "source_line": 7162,
+    "lines": 54
+  },
+  {
+    "file": "frontend/public/js/views/prova_editor.js",
+    "source_line": 7332,
+    "lines": 124
+  },
+  {
+    "file": "frontend/public/js/views/prova.js",
+    "source_line": 7458,
+    "lines": 89
+  },
+  {
+    "file": "README.md",
+    "source_line": 8061,
+    "lines": 52
+  }
+]

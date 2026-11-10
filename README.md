@@ -1,221 +1,91 @@
 # Rally das Tribos
-
-Projeto de sistema web para gerenciamento de competições entre jovens da igreja, focado em rallies, tribos, missões, provas e pontuações. O desenvolvimento está em andamento; o fluxo atual funciona exclusivamente com dados sintéticos em Linux.
-
-## 📋 Visão Geral
-
-O objetivo é substituir o controle manual de competições (rallies) que duram entre 2 e 3 meses. O escopo planejado inclui:
-- Cadastro das 12 tribos de Israel
-- Gestão de líderes, auxiliares e participantes
-- Criação de missões semanais
-- Sistema de provas e quizzes com correção automática
-- Registro de pontuações (automática e manual)
-- Ranking em tempo real
-- Histórico completo de pontuações
-
-## 🏗️ Arquitetura
-
-### Frontend
-- HTML5, CSS3, JavaScript (Vanilla)
-- Design responsivo (mobile-first)
-- Comunicação via Fetch API
-
-### Backend
-- Node.js + Express
-- SQLite3 (preparado para migração para PostgreSQL)
-- API REST
-
-### Estrutura de Diretórios
-
-```
-rally-das-tribos/
-├── backend/
-│   ├── controllers/      # Lógica de negócio
-│   ├── routes/          # Rotas da API
-│   ├── repositories/    # Acesso ao banco de dados
-│   ├── database/        # Scripts de inicialização e migrations
-│   ├── middleware/      # Autenticação e validação
-│   ├── utils/           # Funções utilitárias compartilhadas
-│   └── server.js        # Ponto de entrada
-├── frontend/
-│   ├── css/            # Estilos
-│   ├── js/             # Scripts
-│   └── index.html      # Página principal
-├── public/             # Arquivos estáticos
-├── ARQUITETURA.md      # Documentação de arquitetura
-├── MODELAGEM_BANCO.md  # Modelagem do banco de dados
-└── package.json        # Dependências
-```
-
-## 🚀 Instalação
-
-### Pré-requisitos
-- Node.js 24 (versão validada: 24.19.0)
-- npm (geralmente instalado com Node.js)
-
-O fluxo atual usa **somente bancos sintéticos em Linux**. Consulte [Desenvolvimento na nuvem](docs/DESENVOLVIMENTO_NUVEM.md) para proteções, limites e testes. Os bancos originais e de referência não fazem parte deste procedimento.
-
-### Passos
-
-1. Clone o repositório (ou navegue até o diretório):
+ 
+Plataforma para organizar o rally de jovens da igreja: 12 tribos, cabeças, auxiliares e participantes, missões, dinâmicas, provas/quizzes com correção automática, lançamento de pontos com histórico e ranking em tempo real.
+ 
+## Como rodar
+ 
+Requisitos: Node.js 24 LTS.
+ 
 ```bash
-cd rally-das-tribos
+cd backend
+npm ci
+# Copie .env.example para .env e preencha ADMIN_PASSWORD e JWT_SECRET.
+npm start          # http://localhost:3000
 ```
-
-2. Instale as dependências:
+ 
+Na primeira execução, o banco SQLite é criado em `backend/data/rally.sqlite` com as 12 tribos, as categorias e um administrador:
+ 
+- e-mail: `admin@rally.local`
+- senha: a que você definiu em `ADMIN_PASSWORD` no arquivo local `backend/.env`
+ 
+## Configuração (variáveis de ambiente)
+ 
+| Variável | Padrão | Uso |
+| --- | --- | --- |
+| `PORT` | `3000` | Porta HTTP |
+| `JWT_SECRET` | sem padrão | Obrigatório para iniciar o servidor |
+| `DB_CLIENT` | `better-sqlite3` | Use `pg` para PostgreSQL |
+| `DB_FILE` | `backend/data/rally.sqlite` | Arquivo do SQLite |
+| `DATABASE_URL` | — | Conexão PostgreSQL (quando `DB_CLIENT=pg`) |
+| `ADMIN_EMAIL` | `admin@rally.local` | E-mail do administrador inicial |
+| `ADMIN_PASSWORD` | sem padrão | Senha com pelo menos 8 caracteres, obrigatória na criação do administrador |
+ 
+## Testes
+ 
 ```bash
-npm ci --no-audit --no-fund
-```
-
-3. Crie explicitamente um banco sintético em diretório novo fora do checkout e inicialize o schema:
-```bash
-export NODE_ENV=development
-export RALLY_SYNTHETIC_DIR=/workspace/.rally-synthetic-dev
-export RALLY_DEV_DB_PATH="$RALLY_SYNTHETIC_DIR/rally-dev.db"
-npm run db:dev:create
-npm run init-db
-```
-
-Se o banco sintético já existir, configure as mesmas variáveis e pule `db:dev:create`; o comando nunca sobrescreve arquivos. As migrações podem ser verificadas novamente com `init-db`.
-
-Se uma restauração do ambiente mudar o inode do arquivo, use o [procedimento de retomada](docs/DESENVOLVIMENTO_NUVEM.md#retomar-um-banco-após-restauração-do-ambiente): `npm run db:synthetic:restore` verifica a identidade interna em modo somente leitura e recupera o marker, sem recriar o banco.
-
-4. Crie o primeiro administrador pelo [procedimento seguro de inicialização](docs/AUTENTICACAO.md#primeiro-administrador), sem senha padrão. Depois inicie o servidor:
-```bash
-npm start
-```
-
-5. O servidor de desenvolvimento escuta somente em loopback. Para validar automaticamente a persistência e os fluxos existentes:
-```
+cd backend
 npm test
 ```
+ 
+## Estrutura
+ 
+```
+backend/
+  src/
+    config/        configuração
+    database/      conexão Knex, migrations e seeds
+    repositories/  acesso ao banco
+    services/      regras de negócio (pontuação, ranking, correção…)
+    controllers/   entrada/saída HTTP
+    routes/        rotas da API (/api/…)
+    middlewares/   autenticação, permissões e erros
+  tests/
+frontend/public/   site (HTML, CSS e JavaScript sem framework)
+```
 
-Login, sessões e autorização administrativa estão implementados. Consulte [Autenticação](docs/AUTENTICACAO.md) para aprovação de contas e permissões efetivas. Novos Rallys selecionam duas tribos; edições anteriores preservam suas tribos e resultados para consulta. A escolha fica fixa após iniciar, mas os integrantes podem mudar com histórico na tela de [Equipes](docs/EQUIPES.md). Veja [Rallys e tribos](docs/RALLIES_E_TRIBOS.md). Não use esta versão em produção.
+## Recuperação desta versão
 
-## 📊 Modelagem do Banco de Dados
+Código extraído do histórico fornecido pelo usuário, com reaplicação das correções finais do Devin. Os arquivos originais de arquitetura e SQL estão em `docs/`; o banco em uso segue as migrations de `backend/src/database/migrations/`, que refletem a implementação posterior à proposta.
 
-O sistema utiliza um banco de dados relacional com as seguintes entidades principais:
+O arquivo `recovery-manifest.json` identifica a linha do histórico de onde cada arquivo foi extraído. As versões exatas das dependências antigas não estavam no histórico; as versões resolvidas nesta recuperação estão fixadas em `backend/package-lock.json`. Para reinstalar, use `npm ci` dentro de `backend/`.
 
-- **rallies**: Competições de 2-3 meses
-- **usuarios**: Usuários do sistema com permissões
-- **tribos**: As 12 tribos de Israel
-- **participantes**: Cadastro dos jovens
-- **membros_tribo**: Relacionamento participantes-tribos
-- **missoes**: Missões semanais
-- **categorias_pontos**: Categorias de pontuação
-- **provas**: Diferentes tipos de provas
-- **quiz_questoes**: Questões de quizzes
-- **quiz_alternativas**: Alternativas das questões
-- **quiz_respostas**: Respostas dos participantes
-- **dinamicas**: Dinâmicas presenciais
-- **pontuacoes**: Registro de pontuações
-- **historico_pontuacoes**: Auditoria de alterações
+### Demonstração
 
-Para detalhes completos, consulte `MODELAGEM_BANCO.md`.
+O script `scripts/demo.py` recria os dados fictícios: 12 tribos, 16 jovens cadastrados (8 participantes e 8 líderes/auxiliares), um rally, pontuações por quatro semanas, uma missão, uma dinâmica e dois quizzes. O banco de execução não é versionado no Git.
 
-## 🔐 Permissões
+- Administrador: `admin@rally.local`, com a senha definida localmente.
+- Cabeça de Rúben: `ana@rally.local`, com a senha informada ao executar o script de demonstração.
 
-### Administrador
-- Acesso completo ao sistema
-- Criar/editar rallies, tribos, missões, provas
-- Registrar e editar pontuações
-- Visualizar tudo
+Os dados usam as datas do histórico de 2026. Contadores e gráficos dependentes da data atual podem diferir das capturas antigas.
 
-### Cabeça da Tribo
-- Visualizar sua tribo
-- Ver participantes, missões e resultados
-- Ajudar na organização
+Para recriar a demonstração em um banco novo, inicie o servidor com `cd backend && npm start`. Em outro terminal, na raiz do repositório, execute `python3 scripts/demo.py` (Python 3, sem bibliotecas extras). O script pede a senha do administrador e uma senha para o cabeça, sem exibi-las no terminal. Também aceita `ADMIN_EMAIL`, `ADMIN_PASSWORD` e `DEMO_PASSWORD` por variáveis de ambiente. Ele usa `http://localhost:3000`; defina `RALLY_URL` para outra porta. Ele não duplica o rally se já existir.
 
-### Auxiliar
-- Visualizar informações da própria tribo
-- Auxiliar nas atividades
+### Validação
 
-### Participante
-- Realizar provas e quizzes
-- Visualizar ranking e missões
-- Ver seus resultados
+Os sete testes originais passaram em Node 24. A verificação automatizada em Chromium percorreu 20 rotas administrativas e seis da área do cabeça em viewport de celular, verificou ausência de erros e transbordamento horizontal, bloqueio de lançamento de pontos para o cabeça e envio de prova com exibição imediata do resultado. Também foram verificados lançamento de pontos e correção manual pela interface.
 
-## 📱 Funcionalidades Principais
+A recuperação foi testada com SQLite. A migração para PostgreSQL e a publicação em hospedagem não foram realizadas.
 
-### 1. Gestão de Rallies
-- Criar novos rallies
-- Definir período da competição
-- Separar dados por rally
+### Correções preservando o visual
 
-### 2. Gestão de Tribos
-- Visualizar as 12 tribos em cards
-- Gerenciar líderes e auxiliares
-- Adicionar/remover participantes
-- Transferir participantes entre tribos
+- Caminho dos arquivos do frontend e distribuição local do Chart.js.
+- Substituição de handlers duplicados nas telas que se redesenham.
+- Atualização da tela após finalizar uma tentativa sem mudar o endereço.
+- Ícones de navegação e pódio em SVG, sem depender de fontes de emojis.
+- Encerramento da conexão ao final dos testes e exigência de Node 24.
 
-### 3. Missões Semanais
-- Criar missões com diferentes tipos de pontuação
-- Definir datas limite
-- Tipos: fixa, por quantidade, meta, manual
-- Acompanhamento de entrega
+### Configuração local de acesso
 
-### 4. Sistema de Provas
-- Quiz (múltipla escolha)
-- Verdadeiro ou Falso
-- Complete o Versículo
-- Pergunta Aberta
-- Associação
-- Ordem Correta
-- Dinâmicas presenciais
+As senhas e o segredo de sessão não têm valores fixos no código. Copie `backend/.env.example` para `backend/.env` e preencha os valores antes de iniciar. O arquivo `.env` é ignorado pelo Git. Para gerar um segredo de sessão, use localmente `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`.
 
-### 5. Pontuação
-- Registro automático (quizzes, provas)
-- Registro manual (dinâmicas, missões)
-- Diferentes tipos de pontuação
-- Histórico completo de alterações
-
-### 6. Ranking
-- Atualização em tempo real
-- Visualização das 12 tribos
-- Histórico por semana
-- Gráficos de evolução
-
-### 7. Dashboard
-- Visão geral administrativa
-- Estatísticas do rally
-- Gráficos de desempenho
-
-## 🎯 Próximos Passos
-
-O desenvolvimento será feito em etapas:
-
-1. ✅ Estrutura de diretórios
-2. ✅ Arquitetura documentada
-3. ✅ Modelagem do banco de dados
-4. ✅ Base do backend (Express + SQLite sintético em Linux)
-5. ✅ Interface Arena Turquesa nas telas implementadas
-6. ✅ Login, sessões e autorização administrativa em ambiente sintético
-7. ✅ Criação e ciclo de vida de Rallys, com consulta histórica
-8. ✅ Seleção de duas tribos oficiais por nova edição
-9. ✅ Gestão de pessoas e equipes com histórico
-10. ✅ Missões com entrega, aprovação e pontos fixos
-11. ✅ Provas objetivas: quiz, verdadeiro/falso e complete o versículo
-12. ✅ Pontuação integrada de missões e provas objetivas
-13. ✅ Ranking por edição e lançamentos administrativos imediatos
-14. ⏳ Dashboard
-15. ✅ Responsividade mobile e testes das telas implementadas
-16. ⏳ Permissões e segurança
-
-## 📝 Documentação
-
-- [Arquitetura do Sistema](ARQUITETURA.md)
-- [Modelagem do Banco de Dados](MODELAGEM_BANCO.md)
-
-## 🤝 Contribuindo
-
-Este é um projeto em desenvolvimento. Sugeridos são bem-vindos!
-
-## 📄 Licença
-
-MIT
-
-A etapa de [pontuação e ranking](docs/PONTUACOES.md) permite lançar e corrigir pontos com histórico preservado, sem aprovação adicional.
-
-Em [Missões e provas](docs/ATIVIDADES.md), o administrador publica atividades para as tribos da edição. Cabeça e auxiliar enviam entregas; a aprovação gera pontos. Cada prova define seus respondentes e corrige as respostas objetivas automaticamente. Para liberar o acesso, associe explicitamente as contas aprovadas às pessoas das equipes pela tela de Missões. Teste de navegador: `npm run test:activities:ui`.
-
-A [preparação para publicação](docs/PUBLICACAO.md) reúne a interface Arena Turquesa, testes completos (`npm run test:release`), [backup/restauração](docs/BACKUP.md) e [HTTPS local](docs/HTTPS.md). O ambiente continua sintético/local; domínio, hospedagem e configuração de produção com dados reais são a próxima definição.
+Para publicação no GitHub, as credenciais fixas de demonstração foram substituídas por configuração local. Os testes adicionais verificam que o servidor rejeita a ausência de `JWT_SECRET` e que a primeira execução exige `ADMIN_PASSWORD`. Total: nove testes passando.
