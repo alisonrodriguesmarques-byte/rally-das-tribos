@@ -7,8 +7,8 @@ const pessoas = require('../controllers/pessoasController');
 const categorias = require('../controllers/categoriasController');
 const pontos = require('../controllers/pontosController');
 const missoes = require('../controllers/missoesController');
-const dinamicas = require('../controllers/dinamicasController');
-const provas = require('../controllers/provasController');
+const almas = require('../controllers/relatoriosAlmasController');
+const { ocultarPontuacao } = require('../middlewares/privacidade');
  
 const r = Router();
 const admin = [autenticar, exigirAdmin];
@@ -22,6 +22,7 @@ r.get('/auth/me', autenticar, auth.me);
 r.patch('/auth/senha', autenticar, auth.trocarSenha);
  
 r.use(autenticar);
+r.use(ocultarPontuacao);
  
 // Rallies e tribos
 r.get('/rallies', rallies.listar);
@@ -49,14 +50,14 @@ r.post('/categorias', admin, categorias.criar);
 r.patch('/categorias/:id', admin, categorias.atualizar);
  
 // Pontuação, ranking e painel
-r.get('/rallies/:id/lancamentos', pontos.listar);
+r.get('/rallies/:id/lancamentos', admin, pontos.listar);
 r.post('/rallies/:id/lancamentos', admin, pontos.criar);
 r.patch('/lancamentos/:id', admin, pontos.editar);
 r.post('/lancamentos/:id/cancelar', admin, pontos.cancelar);
 r.get('/lancamentos/:id/historico', admin, pontos.historico);
-r.get('/rallies/:id/ranking', pontos.ranking);
-r.get('/rallies/:id/ranking/semanas', pontos.semanas);
-r.get('/rallies/:id/pontos-por-categoria', pontos.categorias);
+r.get('/rallies/:id/ranking', admin, pontos.ranking);
+r.get('/rallies/:id/ranking/semanas', admin, pontos.semanas);
+r.get('/rallies/:id/pontos-por-categoria', admin, pontos.categorias);
 r.get('/rallies/:id/dashboard', admin, pontos.dashboard);
 r.get('/rallies/:id/exportar/ranking.csv', admin, pontos.exportarRanking);
 r.get('/rallies/:id/exportar/lancamentos.csv', admin, pontos.exportarLancamentos);
@@ -71,25 +72,10 @@ r.post('/missoes/:id/entregas', missoes.enviarEntrega);
 r.post('/entregas/:id/aprovar', admin, missoes.aprovar);
 r.post('/entregas/:id/rejeitar', admin, missoes.rejeitar);
  
-// Dinâmicas
-r.get('/rallies/:id/dinamicas', dinamicas.listar);
-r.post('/rallies/:id/dinamicas', admin, dinamicas.criar);
-r.patch('/dinamicas/:id', dinamicas.atualizar);
-r.post('/dinamicas/:id/status', dinamicas.status);
- 
-// Provas e quizzes
-r.get('/rallies/:id/provas', provas.listar);
-r.post('/rallies/:id/provas', admin, provas.criar);
-r.get('/provas/:id', admin, provas.obter);
-r.patch('/provas/:id', admin, provas.atualizar);
-r.get('/provas/:id/resultados', admin, provas.resultados);
-r.post('/provas/:id/questoes', admin, provas.criarQuestao);
-r.patch('/questoes/:id', admin, provas.atualizarQuestao);
-r.delete('/questoes/:id', admin, provas.excluirQuestao);
-r.post('/provas/:id/tentativas', provas.iniciar);
-r.get('/tentativas/:id', provas.tentativa);
-r.post('/tentativas/:id/finalizar', provas.finalizar);
-r.post('/tentativas/:id/anular', admin, provas.anular);
-r.patch('/respostas/:id', admin, provas.corrigir);
- 
+// Relatórios semanais de almas
+r.get('/rallies/:id/relatorios-almas/exportar', admin, almas.exportar);
+r.get('/rallies/:id/relatorios-almas', almas.listar);
+r.post('/rallies/:id/relatorios-almas', almas.salvar);
+r.post('/relatorios-almas/:id/avaliar', admin, almas.avaliar);
+
 module.exports = r;

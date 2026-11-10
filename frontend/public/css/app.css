@@ -147,3 +147,29 @@ th { color: var(--suave); font-weight: 600; font-size: .8rem; }
 
 /* Ícones vetoriais independem de fontes de emojis. */
 .icone-svg { width: 1em; height: 1em; display: inline-block; vertical-align: -.1em; }
+
+/* Relatório semanal de almas */
+.almas-cabecalho { margin: 1rem 0; }
+.almas-cabecalho h1 { margin-top: .35rem; }
+.almas-cabecalho p { font-size: .9rem; line-height: 1.65; }
+.almas-periodo { display:flex; gap:.65rem; align-items:flex-end; margin-bottom:.5rem; }
+.almas-periodo .campo { flex:1; margin:0; min-width:0; }
+.almas-periodo .btn { flex:none; }
+.almas-resumo { margin-bottom:.8rem; }
+.almas-tabela { width:100%; border-collapse:collapse; font-size:.85rem; table-layout:fixed; }
+.almas-tabela th, .almas-tabela td { padding:.6rem .2rem; border-bottom:1px solid var(--borda); text-align:center; }
+.almas-tabela th:first-child { text-align:left; width:31%; overflow-wrap:anywhere; }
+.almas-tabela th:nth-child(2), .almas-tabela th:nth-child(3) { width:26%; }
+.almas-tabela th:last-child { width:17%; }
+.almas-tabela input { padding:.4rem .15rem; min-width:0; text-align:center; border-radius:8px; font-size:.9rem; -moz-appearance:textfield; }
+.almas-tabela input::-webkit-inner-spin-button { -webkit-appearance:none; }
+.almas-tabela tfoot { font-weight:800; background:#f3f4f8; }
+@media print {
+  body { background:#fff; color:#111; font-size:11pt; }
+  .topo, .nav, .toast, .nao-imprimir, .modal-fundo { display:none !important; }
+  .conteudo { max-width:none; padding:0; }
+  .cartao, .kpi { box-shadow:none; border:1px solid #ddd; }
+  .almas-relatorio { break-inside:avoid; }
+  .almas-resumo { grid-template-columns:repeat(3,1fr); }
+  a { color:inherit; text-decoration:none; }
+}

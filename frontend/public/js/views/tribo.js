@@ -11,12 +11,12 @@ export default async function tribo(el, { id }) {
   definirTitulo(`Tribo de ${t.nome}`);
   const admin = ehAdmin();
   const editar = admin && !somenteLeitura();
-  const max = Math.max(1, ...t.por_categoria.map((c) => c.pontos));
+  const max = Math.max(1, ...(t.por_categoria || []).map((c) => c.pontos));
  
   el.innerHTML = `
     <div class="cartao" style="border-top:8px solid ${esc(t.cor)}">
       <div class="linha linha--entre"><h1 style="margin:0">${esc(t.nome)}</h1>
-        <div class="direita"><div class="pontos" style="font-size:1.6rem">${fmtPontos(t.pontos)}</div><div class="suave">${t.posicao}º de ${t.total_tribos}</div></div></div>
+        ${admin ? `<div class="direita"><div class="pontos" style="font-size:1.6rem">${fmtPontos(t.pontos)}</div><div class="suave">${t.posicao}º de ${t.total_tribos}</div></div>` : ''}</div>
       <ul class="lista" style="margin-top:.5rem">
         <li><span class="cresce suave">Cabeça</span><b>${esc(t.cabeca_nome || '—')}</b></li>
         <li><span class="cresce suave">Auxiliar</span><b>${esc(t.auxiliar_nome || '—')}</b></li>
@@ -33,12 +33,12 @@ export default async function tribo(el, { id }) {
         ${editar ? `<button class="btn btn--peq" data-transferir="${m.id}" data-nome="${esc(m.nome_completo)}">Transferir</button>
           <button class="btn btn--peq btn--perigo" data-remover="${m.id}" data-nome="${esc(m.nome_completo)}" aria-label="Remover">✕</button>` : ''}</li>`).join('')}</ul>` : vazio('Nenhum participante ainda.')}</div>
  
-    <div class="secao-titulo"><h2>Pontos por categoria</h2></div>
+    ${admin ? `<div class="secao-titulo"><h2>Pontos por categoria</h2></div>
     <div class="cartao">${t.por_categoria.length ? t.por_categoria.map((c) => `
       <div style="margin-bottom:.6rem"><div class="linha linha--entre"><span>${esc(c.categoria)}</span><b class="pontos">${fmtPontos(c.pontos)}</b></div>
-      <div class="ranking__barra" style="--cor:${esc(t.cor)}"><i style="width:${Math.max(2, Math.round((Math.max(0, c.pontos) / max) * 100))}%"></i></div></div>`).join('') : vazio('Sem pontos ainda.')}</div>
+      <div class="ranking__barra" style="--cor:${esc(t.cor)}"><i style="width:${Math.max(2, Math.round((Math.max(0, c.pontos) / max) * 100))}%"></i></div></div>`).join('') : vazio('Sem pontos ainda.')}</div>` : ''}
  
-    ${t.historico.length || admin ? `<div class="secao-titulo"><h2>Histórico de pontos</h2>${admin ? `<a href="#/lancamentos?tribo=${t.id}">Completo</a>` : ''}</div>
+    ${admin ? `<div class="secao-titulo"><h2>Histórico de pontos</h2>${admin ? `<a href="#/lancamentos?tribo=${t.id}">Completo</a>` : ''}</div>
     <div class="cartao"><ul class="lista" id="hist">${t.historico.length ? t.historico.slice(0, 30).map(itemLancamento).join('') : vazio('Nenhum lançamento.')}</ul></div>` : ''}`;
  
   const recarregar = async () => {

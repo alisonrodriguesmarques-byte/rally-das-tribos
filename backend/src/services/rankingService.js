@@ -1,7 +1,6 @@
 const db = require('../database/connection');
 const triboRepo = require('../repositories/triboRepo');
 const lancamentoRepo = require('../repositories/lancamentoRepo');
-const provaRepo = require('../repositories/provaRepo');
 const rallyRepo = require('../repositories/rallyRepo');
 const { naoEncontrado } = require('../utils/http');
 const { hoje, paraData, diasEntre, semanaDoRally } = require('../utils/datas');
@@ -61,24 +60,14 @@ async function dashboard(rallyId) {
   const rally = await rallyRepo.obter(rallyId);
   if (!rally) throw naoEncontrado('Rally não encontrado.');
   const contar = async (q) => num((await q.count({ n: '*' }).first()).n);
-  const [rank, sem, cats, participantes, missoes, provas, pendentes, resultadosProvas, provasLista] = await Promise.all([
+  const [rank, sem, cats, participantes, missoes, pendentes] = await Promise.all([
     ranking(rallyId),
     semanas(rallyId),
     porCategoria(rallyId),
     contar(db('membros_tribo as m').join('rally_tribos as rt', 'rt.id', 'm.rally_tribo_id').where({ 'rt.rally_id': rallyId, 'm.status': 'ativo' })),
     contar(db('missoes').where({ rally_id: rallyId }).whereNot({ status: 'cancelada' })),
-    contar(db('provas').where({ rally_id: rallyId }).whereNot({ status: 'cancelada' })),
     contar(db('missao_entregas as e').join('missoes as m', 'm.id', 'e.missao_id').where({ 'm.rally_id': rallyId, 'e.status': 'enviada' })),
-    provaRepo.resultadosDoRally(rallyId),
-    provaRepo.listar(rallyId),
   ]);
-  const maxPorProva = Object.fromEntries(provasLista.map((p) => [p.id, num(p.pontuacao_maxima)]));
-  const desempenho = {};
-  for (const r of resultadosProvas) {
-    const d = (desempenho[r.prova_id] ||= { prova: r.titulo, soma: 0, n: 0, maximo: maxPorProva[r.prova_id] || 0 });
-    d.soma += num(r.pontos);
-    d.n += 1;
-  }
   const inicio = paraData(rally.data_inicio);
   const fim = paraData(rally.data_fim);
   const semanasTotais = sem.rotulos.map((rotulo, i) => ({ rotulo, pontos: sem.series.reduce((a, s) => a + s.semanal[i], 0) }));
@@ -90,7 +79,6 @@ async function dashboard(rallyId) {
       tribos: rank.length,
       participantes,
       missoes,
-      provas,
       entregas_pendentes: pendentes,
       pontos_distribuidos: rank.reduce((a, t) => a + t.pontos, 0),
     },
@@ -98,12 +86,7 @@ async function dashboard(rallyId) {
     semanas: sem,
     pontos_por_semana: semanasTotais,
     por_categoria: cats,
-    desempenho_provas: Object.values(desempenho).map((d) => ({
-      prova: d.prova,
-      media: Math.round(d.soma / d.n),
-      maximo: d.maximo,
-      percentual: d.maximo ? Math.round((d.soma / d.n / d.maximo) * 100) : null,
-    })),
+
   };
 }
  

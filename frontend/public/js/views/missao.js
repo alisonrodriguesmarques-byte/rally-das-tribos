@@ -14,8 +14,8 @@ export default async function missao(el, { id }) {
       <div class="linha linha--entre"><h1 style="margin:0">${esc(m.titulo)}</h1>${etiqueta(m.status)}</div>
       ${m.descricao ? `<p class="quebra" style="white-space:pre-line">${esc(m.descricao)}</p>` : ''}
       <ul class="lista">
-        <li><span class="cresce suave">Pontuação</span><b class="direita">${esc(regraMissao(m))}</b></li>
-        <li><span class="cresce suave">Tipo</span><span class="direita">${esc(TIPOS[m.tipo_pontuacao])}</span></li>
+        ${admin ? `<li><span class="cresce suave">Pontuação</span><b class="direita">${esc(regraMissao(m))}</b></li>` : ''}
+        ${admin ? `<li><span class="cresce suave">Tipo</span><span class="direita">${esc(TIPOS[m.tipo_pontuacao])}</span></li>` : ''}
         <li><span class="cresce suave">Período</span><span>${fmtData(m.data_inicio)}${m.data_limite ? ` a ${fmtData(m.data_limite)}` : ''}</span></li>
         <li><span class="cresce suave">Categoria</span><span>${esc(m.categoria_nome || 'Missões especiais')}</span></li>
         <li><span class="cresce suave">Tribos</span><span class="direita">${esc(tribosNomes)}</span></li>

@@ -13,6 +13,7 @@ export const TIPOS = {
 };
  
 export function regraMissao(m) {
+  if (!ehAdmin()) return 'Resultado acompanhado pela coordenação';
   switch (m.tipo_pontuacao) {
     case 'fixa': return `${fmtPontos(m.pontos)} pts`;
     case 'quantidade': return `${fmtPontos(m.pontos)} pts por unidade${m.limite_por_tribo ? ` (máx. ${m.limite_por_tribo})` : ''}`;
@@ -94,7 +95,7 @@ export function itemEntrega(e, { comMissao = false, admin = false } = {}) {
       ${e.observacao ? `<div class="pequeno quebra">${esc(e.observacao)}</div>` : ''}
       ${e.evidencia_url ? `<a class="pequeno" href="${esc(e.evidencia_url)}" target="_blank" rel="noopener">Ver evidência</a>` : ''}
       ${e.observacao_admin ? `<div class="pequeno suave">Coordenação: ${esc(e.observacao_admin)}</div>` : ''}</div>
-    <div class="direita">${etiqueta(e.status)}${e.status === 'aprovada' && e.pontos_lancados !== null && e.lancamento_status === 'ativo' ? `<div class="pontos pontos--pos">${fmtPontos(e.pontos_lancados, true)}</div>` : ''}</div>
+    <div class="direita">${etiqueta(e.status)}${admin && e.status === 'aprovada' && e.pontos_lancados !== null && e.lancamento_status === 'ativo' ? `<div class="pontos pontos--pos">${fmtPontos(e.pontos_lancados, true)}</div>` : ''}</div>
     ${admin && !somenteLeitura() ? `<div class="botoes" style="width:100%">
       ${e.status !== 'aprovada' ? `<button class="btn btn--peq btn--verde" data-aprovar="${e.id}">Aprovar</button>` : `<button class="btn btn--peq" data-aprovar="${e.id}">Reavaliar</button>`}
       ${e.status !== 'rejeitada' ? `<button class="btn btn--peq btn--perigo" data-rejeitar="${e.id}">Rejeitar</button>` : ''}</div>` : ''}</li>`;

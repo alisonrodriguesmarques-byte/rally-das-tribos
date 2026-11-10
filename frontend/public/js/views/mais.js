@@ -10,17 +10,16 @@ export default async function mais(el) {
     ? [
       ['#/lancamentos', '📒', 'Histórico de pontos', 'Editar e cancelar lançamentos'],
       ['#/pessoas', '👥', 'Pessoas', 'Jovens, líderes e acessos'],
+      ['#/almas', '📒', 'Relatório de almas', 'Resumo semanal e envios das tribos'],
       ['#/missoes', '🎯', 'Missões', 'Semanais e aprovações'],
-      ['#/dinamicas', '🎲', 'Dinâmicas', 'Encontros das tribos'],
-      ['#/provas', '📝', 'Provas e quizzes', 'Questões e correção'],
       ['#/rallies', '🏁', 'Rallies', 'Criar, ativar, encerrar'],
       ['#/categorias', '🏷️', 'Categorias', 'Tipos de pontuação'],
       ['#/senha', '🔑', 'Trocar senha', ''],
     ]
     : [
-      ...(minha ? [[`#/tribos/${minha}`, '🛡️', 'Minha tribo', 'Pontos e membros']] : []),
+      ...(minha ? [[`#/tribos/${minha}`, '🛡️', 'Minha tribo', 'Membros e liderança']] : []),
+      ...(['cabeca', 'auxiliar'].includes(estado.ctx?.funcao) ? [['#/almas', '📒', 'Relatório de almas', 'Enviar os números da semana']] : []),
       ['#/tribos', '🏕️', 'Todas as tribos', ''],
-      ['#/dinamicas', '🎲', 'Dinâmicas', 'Da minha tribo'],
       ['#/senha', '🔑', 'Trocar senha', ''],
     ];
   el.innerHTML = `<div class="cartao linha"><div class="cresce"><b>${esc(estado.usuario.nome)}</b>

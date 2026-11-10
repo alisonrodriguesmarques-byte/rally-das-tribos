@@ -21,5 +21,5 @@ module.exports = {
     const { copiar_lideres: _a, copiar_participantes: _b, ...spec } = SPEC;
     res.json(await rallyService.atualizar(idParam(req), validar(req.body, spec, { parcial: true })));
   },
-  async tribos(req, res) { res.json(await tribosService.listar(idParam(req))); },
+  async tribos(req, res) { res.json(await tribosService.listar(idParam(req), await contexto(req, idParam(req)))); },
 };

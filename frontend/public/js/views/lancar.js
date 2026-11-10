@@ -27,7 +27,7 @@ export default async function lancar(el, _p, query) {
       <label class="campo" style="margin:0"><span>Outro valor</span><input name="valor" type="number" inputmode="numeric" min="1" step="1" placeholder="Ex.: 750"></label>
     </div>
     <div class="cartao"><h3>3. Detalhes</h3>
-      <label class="campo"><span>Motivo *</span><input name="motivo" required maxlength="300" list="motivos" autocomplete="off" placeholder="Ex.: Vitória na dinâmica de sábado"></label>
+      <label class="campo"><span>Motivo *</span><input name="motivo" value="${esc(query.motivo || '')}" required maxlength="300" list="motivos" autocomplete="off" placeholder="Ex.: Vitória na dinâmica de sábado"></label>
       <datalist id="motivos"></datalist>
       <label class="campo"><span>Categoria</span><select name="categoria_id">${opcoesCategorias('')}</select></label>
       <label class="campo"><span>Data de referência</span><input name="data_referencia" type="date" value="${hoje()}"></label>

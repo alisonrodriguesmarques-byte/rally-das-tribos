@@ -6,7 +6,7 @@ import { esc, modal, carregando, aviso, limparGraficos, fecharModais, fmtData, e
 const ROTAS = [
   ['/login', 'login', { publica: true }],
   ['/', 'inicio'],
-  ['/ranking', 'ranking'],
+  ['/ranking', 'ranking', { admin: true }],
   ['/lancar', 'lancar', { admin: true }],
   ['/lancamentos', 'lancamentos', { admin: true }],
   ['/tribos', 'tribos'],
@@ -15,11 +15,7 @@ const ROTAS = [
   ['/pessoas/:id', 'pessoa', { admin: true, voltar: true }],
   ['/missoes', 'missoes'],
   ['/missoes/:id', 'missao', { voltar: true }],
-  ['/dinamicas', 'dinamicas'],
-  ['/provas', 'provas'],
-  ['/provas/:id', 'prova', { admin: true, voltar: true }],
-  ['/responder/:id', 'responder', { voltar: true }],
-  ['/tentativas/:id', 'tentativa', { voltar: true }],
+  ['/almas', 'almas'],
   ['/rallies', 'rallies', { admin: true }],
   ['/categorias', 'categorias', { admin: true }],
   ['/mais', 'mais'],
@@ -31,7 +27,7 @@ const ROTAS = [
 }));
  
 const NAV_ADMIN = [['/', '🏠', 'Painel'], ['/ranking', '🏆', 'Ranking'], ['/lancar', '+', 'Lançar', true], ['/tribos', '🛡️', 'Tribos'], ['/mais', '☰', 'Mais']];
-const NAV_MEMBRO = [['/', '🏠', 'Início'], ['/ranking', '🏆', 'Ranking'], ['/missoes', '🎯', 'Missões'], ['/provas', '📝', 'Provas'], ['/mais', '☰', 'Mais']];
+const NAV_MEMBRO = [['/', '🏠', 'Início'], ['/almas', '📒', 'Almas'], ['/missoes', '🎯', 'Missões'], ['/tribos', '🛡️', 'Tribos'], ['/mais', '☰', 'Mais']];
  
 const app = document.getElementById('app');
 const topo = document.getElementById('topo');
@@ -47,7 +43,7 @@ function atualizarLayout(rota, caminho) {
   const r = estado.rally;
   document.getElementById('topo-rally').textContent = r ? `${r.nome}${r.status === 'encerrado' ? ' (encerrado)' : ''}` : 'Nenhum rally';
   document.getElementById('btn-voltar').hidden = !rota.voltar;
-  const itens = ehAdmin() ? NAV_ADMIN : NAV_MEMBRO;
+  const itens = ehAdmin() ? NAV_ADMIN : NAV_MEMBRO.filter(([href]) => href !== '/almas' || ['cabeca', 'auxiliar'].includes(estado.ctx?.funcao));
   const raiz = `/${caminho.split('/')[1] || ''}`;
   nav.innerHTML = itens.map(([href, ico, rotulo, destaque]) => `
     <a href="#${href}" class="${raiz === href ? 'ativo' : ''}${destaque ? ' destaque' : ''}"><span class="ico">${icone(ico)}</span>${esc(rotulo)}</a>`).join('');

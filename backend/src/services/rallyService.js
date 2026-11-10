@@ -30,7 +30,7 @@ async function atual() {
 }
  
 /**
- * Cria o rally e as 12 tribos dele. Por padrão copia cabeça e auxiliar do rally
+ * Cria o rally e as 13 tribos dele. Por padrão copia cabeça e auxiliar do rally
  * anterior; opcionalmente copia também os participantes ativos.
  */
 async function criar(dados, usuario) {

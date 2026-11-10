@@ -11,7 +11,7 @@ const form = (r = {}, novo = false) => `<form>
   ${novo ? `<label class="campo"><span>Situação</span><select name="status">${opcoes([['planejado', 'Planejado'], ['ativo', 'Ativo (começa agora)']], 'ativo')}</select></label>
   ${estado.rallies.length ? `<label class="check"><input type="checkbox" name="copiar_lideres" checked> Manter os mesmos cabeças e auxiliares do rally anterior</label>
   <label class="check"><input type="checkbox" name="copiar_participantes"> Copiar também os participantes do rally anterior</label>` : ''}
-  <p class="suave pequeno">As 12 tribos são criadas automaticamente. Ativar este rally encerra o rally ativo anterior (o histórico fica guardado).</p>` : ''}
+  <p class="suave pequeno">As 13 tribos são criadas automaticamente. Ativar este rally encerra o rally ativo anterior (o histórico fica guardado).</p>` : ''}
   <button class="btn btn--primario btn--bloco" type="submit">${novo ? 'Criar rally' : 'Salvar'}</button></form>`;
  
 export default async function rallies(el) {
@@ -41,7 +41,7 @@ export default async function rallies(el) {
     html: form({}, true),
     aoAbrir: (m, fechar) => aoEnviar(m.querySelector('form'), async (d) => {
       const r = await api('POST', '/rallies', d);
-      toast('Rally criado com as 12 tribos.');
+      toast('Rally criado com as 13 tribos.');
       fechar();
       await recarregar(r.id);
     }),

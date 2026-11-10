@@ -21,16 +21,14 @@ export default async function painel(el) {
     <div class="botoes" style="margin:.85rem 0">
       <a class="btn btn--ouro" href="#/lancar">+ Lançar pontos</a>
       <a class="btn" href="#/missoes">Missões</a>
-      <a class="btn" href="#/provas">Provas</a>
+      <a class="btn" href="#/almas">Relatório de almas</a>
     </div>
     <div class="secao-titulo"><h2>Ranking</h2><a href="#/ranking">Ver completo</a></div>
     ${d.ranking.slice(0, 5).map((t) => itemRanking(t, max)).join('')}
     <div class="cartao" style="margin-top:.85rem"><h2>Evolução acumulada</h2><div class="grafico"><canvas id="g-evo"></canvas></div></div>
     <div class="cartao"><h2>Pontos por semana</h2><div class="grafico" style="height:200px"><canvas id="g-sem"></canvas></div></div>
     <div class="cartao"><h2>Pontos por categoria</h2>${d.por_categoria.length ? '<div class="grafico"><canvas id="g-cat"></canvas></div>' : vazio('Nenhum ponto lançado ainda.')}</div>
-    <div class="cartao"><h2>Desempenho nas provas</h2>${d.desempenho_provas.length ? `<ul class="lista">${d.desempenho_provas.map((p) => `
-      <li><div class="cresce"><b>${esc(p.prova)}</b><div class="suave">média ${fmtPontos(p.media)} de ${fmtPontos(p.maximo)}</div></div>
-      <span class="pontos">${p.percentual ?? '-'}%</span></li>`).join('')}</ul>` : vazio('Nenhuma prova corrigida ainda.')}</div>`;
+`;
  
   grafico(el.querySelector('#g-evo'), {
     type: 'line',

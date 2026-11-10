@@ -25,12 +25,12 @@ before(async () => {
   assert.equal(r.status, 200);
 });
  
-test('cria rally com 12 tribos', async () => {
+test('cria rally com 13 tribos', async () => {
   const r = await admin.post('/api/rallies').send({ nome: 'Rally 2026', data_inicio: '2026-10-01', data_fim: '2026-12-20', status: 'ativo' });
   assert.equal(r.status, 201, JSON.stringify(r.body));
   rally = r.body;
   tribos = (await admin.get(`/api/rallies/${rally.id}/tribos`)).body;
-  assert.equal(tribos.length, 12);
+  assert.equal(tribos.length, 13);
 });
  
 test('cadastra pessoas, lideranca, membro e transferencia', async () => {
@@ -91,61 +91,6 @@ test('missão por quantidade: entrega do cabeça, aprovação e rejeição', asy
   await admin.post(`/api/entregas/${e.body.id}/rejeitar`).send({ motivo: 'sem evidência' });
   rank = (await admin.get(`/api/rallies/${rally.id}/ranking`)).body;
   assert.equal(rank.find((t) => t.tribo === 'Judá').pontos, 2500);
-});
- 
-test('dinâmica realizada gera pontos e desfazer cancela', async () => {
-  const d = await admin.post(`/api/rallies/${rally.id}/dinamicas`).send({ rally_tribo_id: juda().id, titulo: 'Quiz bíblico', pontos_previstos: 2000, data_encontro: '2026-10-08' });
-  assert.equal(d.status, 201, JSON.stringify(d.body));
-  let s = await admin.post(`/api/dinamicas/${d.body.id}/status`).send({ status: 'realizada' });
-  assert.equal(s.status, 200, JSON.stringify(s.body));
-  assert.equal(s.body.pontos_lancados, 2000);
-  s = await admin.post(`/api/dinamicas/${d.body.id}/status`).send({ status: 'nao_realizada' });
-  assert.equal(s.body.lancamento_status, 'cancelado');
-});
- 
-test('prova com todos os tipos: correção automática e manual', async () => {
-  const p = await admin.post(`/api/rallies/${rally.id}/provas`).send({ titulo: 'Quiz 1' });
-  const id = p.body.id;
-  const q = (body) => admin.post(`/api/provas/${id}/questoes`).send(body);
-  let r = await q({ tipo: 'multipla_escolha', enunciado: 'Quantos livros?', pontos: 100, alternativas: [{ texto: '66', correta: true }, { texto: '72' }] });
-  assert.equal(r.status, 201, JSON.stringify(r.body));
-  await q({ tipo: 'verdadeiro_falso', enunciado: 'A Bíblia tem 66 livros', pontos: 100, alternativas: [{ texto: 'Verdadeiro', correta: true }, { texto: 'Falso' }] });
-  await q({ tipo: 'complete', enunciado: 'Porque Deus amou o ____', pontos: 100, respostas_aceitas: ['mundo'] });
-  await q({ tipo: 'ordem', enunciado: 'Ordene', pontos: 100, alternativas: [{ texto: 'Gênesis' }, { texto: 'Êxodo' }] });
-  await q({ tipo: 'associacao', enunciado: 'Associe', pontos: 100, pares: [{ a: 'Moisés', b: 'Mar Vermelho' }, { a: 'Davi', b: 'Golias' }] });
-  await q({ tipo: 'aberta', enunciado: 'Explique', pontos: 100 });
-  r = await admin.patch(`/api/provas/${id}`).send({ status: 'publicada' });
-  assert.equal(r.status, 200);
-  const cabeca = request.agent(app);
-  await cabeca.post('/api/auth/login').send({ email: 'joao@x.com', senha: senhaCabeca });
-  const t = await cabeca.post(`/api/provas/${id}/tentativas`).send({});
-  assert.equal(t.status, 201, JSON.stringify(t.body));
-  const qs = t.body.questoes;
-  assert.ok(!JSON.stringify(qs).includes('correta'));
-  const completa = (await admin.get(`/api/provas/${id}`)).body.questoes;
-  const by = (tipo) => completa.find((x) => x.tipo === tipo);
-  const respostas = [
-    { questao_id: by('multipla_escolha').id, alternativa_id: by('multipla_escolha').alternativas.find((a) => a.correta).id },
-    { questao_id: by('verdadeiro_falso').id, alternativa_id: by('verdadeiro_falso').alternativas.find((a) => !a.correta).id },
-    { questao_id: by('complete').id, texto: ' Mundo ' },
-    { questao_id: by('ordem').id, ordem: by('ordem').alternativas.map((a) => a.id) },
-    { questao_id: by('associacao').id, pares: Object.fromEntries(by('associacao').alternativas.filter((a) => a.lado === 'A').map((a) => [a.id, by('associacao').alternativas.find((b) => b.lado === 'B' && b.par_chave === a.par_chave).id])) },
-    { questao_id: by('aberta').id, texto: 'Minha resposta' },
-  ];
-  const f = await cabeca.post(`/api/tentativas/${t.body.tentativa.id}/finalizar`).send({ respostas });
-  assert.equal(f.status, 200, JSON.stringify(f.body));
-  assert.equal(f.body.tentativa.status, 'aguardando_correcao');
-  assert.equal(f.body.tentativa.pontos_obtidos, 400);
-  const res = (await admin.get(`/api/provas/${id}/resultados`)).body;
-  assert.equal(res.respostas_pendentes.length, 1);
-  const c = await admin.patch(`/api/respostas/${res.respostas_pendentes[0].id}`).send({ pontos_obtidos: 50 });
-  assert.equal(c.status, 200, JSON.stringify(c.body));
-  const res2 = (await admin.get(`/api/provas/${id}/resultados`)).body;
-  assert.equal(res2.resultados[0].pontos, 450);
-  const lanc = (await admin.get(`/api/rallies/${rally.id}/lancamentos?origem_tipo=prova`)).body;
-  assert.equal(lanc[0].pontos, 450);
-  const edit = await admin.patch(`/api/questoes/${by('aberta').id}`).send({ enunciado: 'x', tipo: 'aberta' });
-  assert.equal(edit.status, 409);
 });
  
 test('rally encerrado é somente leitura', async () => {

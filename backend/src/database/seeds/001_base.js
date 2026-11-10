@@ -5,7 +5,7 @@ const TRIBOS = [
   ['Rúben', 'ruben', '#c0392b'], ['Simeão', 'simeao', '#16a085'], ['Levi', 'levi', '#7f8c8d'],
   ['Judá', 'juda', '#d4a017'], ['Dã', 'da', '#2c3e50'], ['Naftali', 'naftali', '#27ae60'],
   ['Gade', 'gade', '#8e44ad'], ['Aser', 'aser', '#e67e22'], ['Issacar', 'issacar', '#2980b9'],
-  ['Zebulom', 'zebulom', '#1abc9c'], ['José', 'jose', '#9b59b6'], ['Benjamim', 'benjamim', '#e74c3c'],
+  ['Zebulom', 'zebulom', '#1abc9c'], ['Manassés', 'manasses', '#9b59b6'], ['Efraim', 'efraim', '#6366f1'], ['Benjamim', 'benjamim', '#e74c3c'],
 ];
  
 const CATEGORIAS = [

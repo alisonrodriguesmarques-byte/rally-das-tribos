@@ -1,5 +1,15 @@
 {
-  "adminRoutes": 20,
-  "memberRoutes": 6,
-  "errors": []
+  "checks": 28,
+  "errors": [],
+  "weeklyTotal": 25,
+  "correctedTotal": 34,
+  "responsiveWidths": [
+    320,
+    390,
+    1280
+  ],
+  "draftPersistence": true,
+  "submission": true,
+  "reviewAndReturn": true,
+  "exports": true
 }

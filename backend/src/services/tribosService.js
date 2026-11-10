@@ -8,8 +8,9 @@ const rankingService = require('./rankingService');
 const { naoEncontrado, conflito, requisicaoInvalida } = require('../utils/http');
 const { agora } = require('../utils/db');
  
-async function listar(rallyId) {
+async function listar(rallyId, ctx = { admin: false }) {
   await rallyService.obter(rallyId);
+  if (!ctx.admin) return triboRepo.listarDoRally(rallyId);
   const [tribos, ranking] = await Promise.all([triboRepo.listarDoRally(rallyId), rankingService.ranking(rallyId)]);
   const pos = Object.fromEntries(ranking.map((r) => [r.rally_tribo_id, r]));
   return tribos.map((t) => ({ ...t, pontos: pos[t.id]?.pontos || 0, posicao: pos[t.id]?.posicao }));
@@ -23,18 +24,17 @@ async function obterOuFalhar(id, trx = db) {
  
 async function perfil(id, ctx) {
   const rt = await obterOuFalhar(id);
-  const ranking = await rankingService.ranking(rt.rally_id);
+  const ranking = ctx.admin ? await rankingService.ranking(rt.rally_id) : [];
   const minha = ranking.find((r) => r.rally_tribo_id === rt.id);
   const podeVerDetalhes = ctx.admin || Number(ctx.rallyTriboId) === rt.id;
   const [membros, porCategoria, historico] = await Promise.all([
     triboRepo.listarMembros(id),
-    lancamentoRepo.porCategoria(rt.rally_id, rt.id),
-    podeVerDetalhes ? lancamentoRepo.listar(rt.rally_id, { rally_tribo_id: rt.id, status: 'ativo', limite: 200 }) : [],
+    ctx.admin ? lancamentoRepo.porCategoria(rt.rally_id, rt.id) : [],
+    ctx.admin ? lancamentoRepo.listar(rt.rally_id, { rally_tribo_id: rt.id, status: 'ativo', limite: 200 }) : [],
   ]);
   return {
     ...rt,
-    pontos: minha?.pontos || 0,
-    posicao: minha?.posicao,
+    ...(ctx.admin ? { pontos: minha?.pontos || 0, posicao: minha?.posicao } : {}),
     total_tribos: ranking.length,
     participantes: membros.length,
     membros: podeVerDetalhes ? membros : membros.map((m) => ({ id: m.id, apelido: m.apelido, nome_completo: m.nome_completo })),

@@ -1,0 +1,46 @@
+RALLY DAS TRIBOS - FJU
+
+COMO ABRIR NO WINDOWS
+1. Instale o Node.js 24 LTS, caso ainda não esteja instalado.
+2. Extraia TODO o ZIP para uma pasta nova (não execute dentro do arquivo ZIP).
+   Copie backend/.env.example para backend/.env e preencha ADMIN_PASSWORD
+   (no mínimo 8 caracteres) e JWT_SECRET com valores definidos localmente.
+3. Dê dois cliques em INICIAR.bat.
+4. Na primeira execução, aguarde a instalação das dependências pela internet.
+5. Quando aparecer a mensagem do servidor, abra http://localhost:3000.
+6. Em banco novo, entre com o e-mail ADMIN_EMAIL e a senha ADMIN_PASSWORD
+   que você definiu em backend/.env.
+
+O download do GitHub não inclui .env nem banco. Em uma atualização, pare o
+servidor e reutilize sua configuração e seu banco locais, mantendo um backup.
+Use uma pasta nova para evitar misturar arquivos com a versão anterior.
+Se a porta 3000 já estiver ocupada, pare o servidor antigo com Ctrl+C.
+Para encerrar este servidor, pressione Ctrl+C no terminal.
+
+NO VS CODE
+Abra a pasta extraída, abra o terminal e execute:
+  node scripts/iniciar.cjs
+
+MUDANÇAS
+- 13 tribos: Levi mantida; José renomeada para Manassés e Efraim adicionada.
+- Os vínculos e o histórico da antiga José agora pertencem a Manassés.
+- Ranking, pontos, gráficos e extratos visíveis apenas ao administrador.
+- Relatório semanal de almas para cabeças e auxiliares.
+- Administração com resumo geral, conferência, devolução e exportação TXT/CSV/PDF.
+- Provas, quizzes e dinâmicas retirados das telas e da API.
+
+Os pontos de provas e dinâmicas antigas foram preservados no histórico.
+A entrega de relatórios NÃO lança pontos automaticamente; o admin define os pontos.
+As contagens representam presenças em cada reunião, não pessoas únicas na semana.
+
+RELATÓRIOS
+Cabeça/auxiliar: Início > Preencher relatório, ou menu Almas.
+Escolha a semana, preencha novas/afastadas em cada reunião e salve ou envie.
+Admin: Painel > Relatório de almas, ou Mais > Relatório de almas.
+Rascunhos não entram no resumo geral. Relatórios enviados ficam bloqueados até
+que o administrador os devolva para correção.
+Para compartilhar com seu superior, use Copiar relatório ou Baixar texto.
+Imprimir / PDF permite salvar o documento como PDF no navegador.
+
+Mantenha sua configuração e seu banco locais. O .gitignore exclui .env e o banco
+para que esses arquivos pessoais não sejam publicados no repositório.

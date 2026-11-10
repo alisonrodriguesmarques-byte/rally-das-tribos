@@ -29,22 +29,5 @@ if not rs:
             api('POST',f'/rallies/{rid}/lancamentos',{'rally_tribo_id':t['id'],'pontos':random.choice([500,1000,1500,2000,3000]),'motivo':'Presença no encontro','categoria_id':random.choice(cats)['id'],'data_referencia':d})
     m=api('POST',f'/rallies/{rid}/missoes',{'titulo':'Trazer convidados','descricao':'Cada convidado vale pontos','tipo_pontuacao':'quantidade','pontos':500,'limite_por_tribo':10,'data_inicio':'2026-10-01','data_limite':'2026-10-31','requer_aprovacao':True})
     api('POST',f'/missoes/{m["id"]}/entregas',{'rally_tribo_id':tribos[1]['id'],'quantidade':3,'observacao':'3 amigos vieram'})
-    api('POST',f'/rallies/{rid}/dinamicas',{'rally_tribo_id':tribos[0]['id'],'titulo':'Gincana bíblica','tema':'Êxodo','data_encontro':'2026-10-10','pontos_previstos':2000})
-    pv=api('POST',f'/rallies/{rid}/provas',{'titulo':'Quiz de Gênesis','modo':'tribo','max_tentativas':1})
-    api('POST',f'/provas/{pv["id"]}/questoes',{'tipo':'multipla_escolha','enunciado':'Quem construiu a arca?','pontos':100,'alternativas':[{'texto':'Noé','correta':True},{'texto':'Moisés'},{'texto':'Abraão'}]})
-    api('POST',f'/provas/{pv["id"]}/questoes',{'tipo':'aberta','enunciado':'O que Deus criou no primeiro dia?','pontos':200})
-    api('PATCH',f'/provas/{pv["id"]}',{'status':'publicada'})
-print('Demonstração disponível em '+B)
-# O segundo quiz foi criado no teste de interface registrado pelo Devin.
-rid=api('GET','/rallies')[0]['id']
-if not any(p['titulo']=='Quiz Êxodo' for p in api('GET',f'/rallies/{rid}/provas')):
-    p=api('POST',f'/rallies/{rid}/provas',{'titulo':'Quiz Êxodo','modo':'tribo','max_tentativas':1})
-    qs=[
-      {'tipo':'multipla_escolha','enunciado':'Pergunta multipla_escolha','alternativas':[{'texto':'Moisés','correta':True},{'texto':'Arão'}]},
-      {'tipo':'verdadeiro_falso','enunciado':'Pergunta verdadeiro_falso','alternativas':[{'texto':'Verdadeiro','correta':True},{'texto':'Falso'}]},
-      {'tipo':'complete','enunciado':'Pergunta complete','respostas_aceitas':['Luz','A luz']},
-      {'tipo':'ordem','enunciado':'Pergunta ordem','alternativas':[{'texto':'Gênesis'},{'texto':'Êxodo'},{'texto':'Levítico'}]},
-      {'tipo':'associacao','enunciado':'Pergunta associacao','pares':[{'a':'Moisés','b':'Sarça'},{'a':'Noé','b':'Arca'},{'a':'Davi','b':'Golias'}]},
-    ]
-    for q in qs: api('POST',f'/provas/{p["id"]}/questoes',{**q,'pontos':100})
-    api('PATCH',f'/provas/{p["id"]}',{'status':'publicada'})
+
+print('Dados de demonstração disponíveis em '+B)
