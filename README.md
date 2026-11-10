@@ -1,6 +1,6 @@
 # Rally das Tribos — FJU
 
-Esta versão inclui as melhorias solicitadas: 13 tribos, pontuação reservada ao administrador e relatório semanal de almas. Requer Node.js 24. O repositório contém o código e as migrations; os arquivos privados de configuração e banco não são publicados.
+Esta versão inclui as melhorias solicitadas: seleção das tribos participantes a partir do catálogo de 13 tribos, pontuação reservada ao administrador e relatório semanal de almas. Requer Node.js 24. O repositório contém o código e as migrations; os arquivos privados de configuração e banco não são publicados.
 
 Antes de iniciar, copie `backend/.env.example` para `backend/.env` e preencha `ADMIN_PASSWORD` (pelo menos 8 caracteres) e `JWT_SECRET` com valores definidos localmente. Para gerar o segredo de sessão, execute localmente `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`.
 
@@ -8,7 +8,7 @@ No Windows, execute **INICIAR.bat**. No VS Code, abra a pasta e execute `node sc
 
 ## Funcionalidades
 
-- 13 tribos, com Levi, Manassés e Efraim. A antiga José foi renomeada para Manassés, preservando vínculos e histórico. Efraim foi adicionada aos rallies existentes.
+- Catálogo com 13 tribos, incluindo Levi, Manassés e Efraim. Ao criar um rally, o admin deve marcar quais participarão; nenhuma vem marcada automaticamente. É possível selecionar uma, algumas ou todas. A antiga José foi renomeada para Manassés, preservando vínculos e histórico. Efraim foi adicionada aos rallies existentes.
 - Ranking e pontuações apenas para o administrador, inclusive nas respostas da API, perfis, entregas, gráficos e exportações.
 - Missões e entregas, cadastro de pessoas, liderança e lançamento manual de pontos.
 - Relatório de almas semanal: segunda, quarta, quinta, sexta e sábado. Novas, afastadas e totais calculados pelo servidor.
@@ -35,3 +35,7 @@ Os dados fictícios de exemplo podem ser recriados, em banco sem rallies, com `p
 ## Testes
 
 Instale as dependências com `npm run setup` e execute `npm test`. Os testes cobrem permissões, sigilo da pontuação, relatórios, exportações, validações, envio duplicado, correções e migração com preservação dos dados.
+
+## Tribos de cada rally
+
+Em **Mais → Rallies → Novo rally**, marque as tribos participantes. Use **Selecionar todas** ou **Limpar seleção** se desejar. A criação exige pelo menos uma tribo, inclusive pela API (`POST /api/rallies`, campo `tribos`: lista de IDs do catálogo disponível para admin em `GET /api/tribos`). A seleção define as tribos do ranking, painel e relatórios. A cópia de líderes e participantes considera somente as tribos marcadas. Rallies existentes mantêm sua composição ao editar o nome ou as datas.

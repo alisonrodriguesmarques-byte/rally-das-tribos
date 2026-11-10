@@ -173,3 +173,13 @@ th { color: var(--suave); font-weight: 600; font-size: .8rem; }
   .almas-resumo { grid-template-columns:repeat(3,1fr); }
   a { color:inherit; text-decoration:none; }
 }
+
+/* Seleção de tribos na criação de rally. */
+.rally-selecao { border:1px solid var(--borda); border-radius:12px; padding:.8rem; margin:0 0 1rem; min-width:0; }
+.rally-selecao legend { font-weight:700; padding:0 .3rem; }
+.rally-opcoes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; margin-top:.8rem; }
+.rally-opcoes .check { min-height:44px; padding:.45rem; margin:0; border:1px solid var(--borda); border-radius:8px; overflow-wrap:anywhere; }
+.rally-opcoes input { flex:none; }
+@media (max-width:360px) { .rally-opcoes { grid-template-columns:1fr; } }
+
+.rally-erro-tribos { color:var(--vermelho); font-size:.85rem; }

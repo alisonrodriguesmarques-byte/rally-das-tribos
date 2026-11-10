@@ -25,8 +25,9 @@ before(async () => {
   assert.equal(r.status, 200);
 });
  
-test('cria rally com 13 tribos', async () => {
-  const r = await admin.post('/api/rallies').send({ nome: 'Rally 2026', data_inicio: '2026-10-01', data_fim: '2026-12-20', status: 'ativo' });
+test('cria rally com as 13 tribos selecionadas', async () => {
+  const catalogo = (await admin.get('/api/tribos')).body;
+  const r = await admin.post('/api/rallies').send({ tribos: catalogo.map((t) => t.id), nome: 'Rally 2026', data_inicio: '2026-10-01', data_fim: '2026-12-20', status: 'ativo' });
   assert.equal(r.status, 201, JSON.stringify(r.body));
   rally = r.body;
   tribos = (await admin.get(`/api/rallies/${rally.id}/tribos`)).body;

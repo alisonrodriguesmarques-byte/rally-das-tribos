@@ -25,6 +25,7 @@ r.use(autenticar);
 r.use(ocultarPontuacao);
  
 // Rallies e tribos
+r.get('/tribos', admin, rallies.catalogo);
 r.get('/rallies', rallies.listar);
 r.get('/rallies/atual', rallies.atual);
 r.get('/rallies/:id', rallies.obter);

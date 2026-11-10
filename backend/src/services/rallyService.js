@@ -30,12 +30,19 @@ async function atual() {
 }
  
 /**
- * Cria o rally e as 13 tribos dele. Por padrão copia cabeça e auxiliar do rally
+ * Cria o rally apenas com as tribos selecionadas pelo administrador. Por padrão copia cabeça e auxiliar do rally
  * anterior; opcionalmente copia também os participantes ativos.
  */
 async function criar(dados, usuario) {
   if (dados.data_fim < dados.data_inicio) throw requisicaoInvalida('A data final deve ser depois da inicial.');
   return db.transaction(async (trx) => {
+    const ids = dados.tribos;
+    if (!Array.isArray(ids) || !ids.length || ids.some((id) => !Number.isSafeInteger(id) || id <= 0) || new Set(ids).size !== ids.length) {
+      throw requisicaoInvalida('Selecione pelo menos uma tribo válida, sem repetições.', { tribos: 'Selecione as tribos participantes.' });
+    }
+    const catalogo = await triboRepo.listarCatalogo(trx);
+    const selecionadas = catalogo.filter((t) => ids.includes(t.id));
+    if (selecionadas.length !== ids.length) throw requisicaoInvalida('Uma das tribos selecionadas não existe no catálogo.');
     const id = await rallyRepo.criar({
       nome: dados.nome, data_inicio: dados.data_inicio, data_fim: dados.data_fim,
       status: dados.status || 'planejado', criado_por: usuario.id,
@@ -46,7 +53,7 @@ async function criar(dados, usuario) {
     const membrosAnteriores = anterior && dados.copiar_participantes
       ? await triboRepo.listarMembrosAtivosDoRally(anterior.id, trx) : [];
  
-    for (const tribo of await triboRepo.listarCatalogo(trx)) {
+    for (const tribo of selecionadas) {
       const ant = dados.copiar_lideres !== false ? porTribo[tribo.id] : null;
       const rtId = await triboRepo.criar({
         rally_id: id, tribo_id: tribo.id,

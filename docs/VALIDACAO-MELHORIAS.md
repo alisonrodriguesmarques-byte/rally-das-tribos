@@ -9,3 +9,9 @@
 - Iniciador Node executado no ambiente Linux com sucesso. O arquivo INICIAR.bat usa o mesmo iniciador, mas não foi executado em Windows neste ambiente.
 
 O ZIP não inclui node_modules, pois o SQLite usa um módulo nativo específico de cada sistema. O iniciador instala as dependências corretas no computador do usuário com Node 24 e conexão à internet na primeira execução.
+
+## Correção da seleção de tribos
+
+26 testes automatizados aprovados. Novos cenários cobrem seleção vazia ou inválida, criação com duas tribos, cópia de vínculos apenas das selecionadas, resumo e ranking proporcionais à seleção, uma única tribo, seleção explícita de todas e preservação da composição ao editar.
+
+Chromium: primeiro rally criado pelo formulário apenas com Judá e Efraim; segundo apenas com Manassés, com o catálogo completo ainda disponível. Verificados o bloqueio de seleção vazia, seleção de todas, limpeza, contador e larguras de 320, 390 e 1280 pixels.

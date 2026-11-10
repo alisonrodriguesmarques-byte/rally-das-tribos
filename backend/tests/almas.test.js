@@ -24,7 +24,8 @@ async function pessoa(nome, email) {
 before(async () => {
   await db.migrate.latest(); await db.seed.run(); app = criarApp(); admin = request.agent(app);
   await admin.post('/api/auth/login').send({ email: 'admin@rally.local', senha: process.env.ADMIN_PASSWORD });
-  rally = (await admin.post('/api/rallies').send({ nome: 'Rally semanal', data_inicio: '2026-11-01', data_fim: '2026-12-31', status: 'ativo' })).body;
+  const catalogo = (await admin.get('/api/tribos')).body;
+  rally = (await admin.post('/api/rallies').send({ tribos: catalogo.map((t) => t.id), nome: 'Rally semanal', data_inicio: '2026-11-01', data_fim: '2026-12-31', status: 'ativo' })).body;
   tribos = (await admin.get(`/api/rallies/${rally.id}/tribos`)).body;
   const a = await pessoa('Cabeça teste', 'cabeca@teste.local');
   const b = await pessoa('Auxiliar teste', 'auxiliar@teste.local');

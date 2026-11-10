@@ -1,0 +1,20 @@
+{
+  "firstRally": [
+    "Judá",
+    "Efraim"
+  ],
+  "secondRally": [
+    "Manassés"
+  ],
+  "noAutomaticSelection": true,
+  "emptySelectionBlocked": true,
+  "allAndClear": true,
+  "fullCatalogAfterSubset": true,
+  "editPreservesSelection": true,
+  "widths": [
+    320,
+    390,
+    1280
+  ],
+  "errors": []
+}

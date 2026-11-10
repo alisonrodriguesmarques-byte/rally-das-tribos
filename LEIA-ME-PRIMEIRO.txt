@@ -44,3 +44,8 @@ Imprimir / PDF permite salvar o documento como PDF no navegador.
 
 Mantenha sua configuração e seu banco locais. O .gitignore exclui .env e o banco
 para que esses arquivos pessoais não sejam publicados no repositório.
+
+NOVO RALLY
+Em Mais > Rallies > Novo rally, marque as tribos que vão participar.
+Nenhuma tribo vem marcada. É necessário escolher pelo menos uma.
+O ranking e os relatórios considerarão somente essa seleção.

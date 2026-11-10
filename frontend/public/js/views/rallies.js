@@ -4,14 +4,21 @@ import {
   esc, fmtData, definirTitulo, vazio, etiqueta, modal, aoEnviar, toast, confirmar, on, acao, opcoes,
 } from '../ui.js';
  
-const form = (r = {}, novo = false) => `<form>
+const form = (r = {}, novo = false, catalogo = []) => `<form>
   <label class="campo"><span>Nome *</span><input name="nome" required maxlength="120" value="${esc(r.nome || '')}" placeholder="Ex.: Rally das Tribos 2026"></label>
   <div class="grade"><label class="campo"><span>Início *</span><input name="data_inicio" type="date" required value="${esc(r.data_inicio || '')}"></label>
   <label class="campo"><span>Fim *</span><input name="data_fim" type="date" required value="${esc(r.data_fim || '')}"></label></div>
   ${novo ? `<label class="campo"><span>Situação</span><select name="status">${opcoes([['planejado', 'Planejado'], ['ativo', 'Ativo (começa agora)']], 'ativo')}</select></label>
+  <fieldset class="rally-selecao"><legend>Tribos participantes *</legend>
+    <p class="suave pequeno">Marque apenas as tribos que participarão deste rally.</p>
+    <div class="botoes"><button class="btn btn--peq" type="button" data-selecionar="todas">Selecionar todas</button><button class="btn btn--peq" type="button" data-selecionar="nenhuma">Limpar seleção</button></div>
+    <div class="rally-opcoes">${catalogo.map((t) => `<label class="check"><input type="checkbox" name="tribos" data-lista value="${t.id}"><span class="bolinha" style="background:${esc(t.cor)}"></span>${esc(t.nome)}</label>`).join('')}</div>
+    <p class="suave pequeno" data-contagem aria-live="polite">0 tribos selecionadas</p>
+    <p class="rally-erro-tribos" data-erro-tribos hidden>Selecione pelo menos uma tribo para criar o rally.</p>
+  </fieldset>
   ${estado.rallies.length ? `<label class="check"><input type="checkbox" name="copiar_lideres" checked> Manter os mesmos cabeças e auxiliares do rally anterior</label>
   <label class="check"><input type="checkbox" name="copiar_participantes"> Copiar também os participantes do rally anterior</label>` : ''}
-  <p class="suave pequeno">As 13 tribos são criadas automaticamente. Ativar este rally encerra o rally ativo anterior (o histórico fica guardado).</p>` : ''}
+  <p class="suave pequeno">Somente as tribos marcadas serão incluídas. Ativar este rally encerra o rally ativo anterior (o histórico fica guardado).</p>` : ''}
   <button class="btn btn--primario btn--bloco" type="submit">${novo ? 'Criar rally' : 'Salvar'}</button></form>`;
  
 export default async function rallies(el) {
@@ -36,15 +43,38 @@ export default async function rallies(el) {
     window.dispatchEvent(new Event('rally:recarregar'));
   };
  
-  el.querySelector('#novo').addEventListener('click', () => modal({
-    titulo: 'Novo rally',
-    html: form({}, true),
-    aoAbrir: (m, fechar) => aoEnviar(m.querySelector('form'), async (d) => {
-      const r = await api('POST', '/rallies', d);
-      toast('Rally criado com as 13 tribos.');
-      fechar();
-      await recarregar(r.id);
-    }),
+  el.querySelector('#novo').addEventListener('click', (evento) => acao(evento.currentTarget, async () => {
+    // Catálogo global: funciona mesmo antes do primeiro rally ou após um rally com poucas tribos.
+    const catalogo = await api('GET', '/tribos');
+    modal({
+      titulo: 'Novo rally',
+      html: form({}, true, catalogo),
+      aoAbrir: (m, fechar) => {
+        const formulario = m.querySelector('form');
+        const selecionadas = () => m.querySelectorAll('[name=tribos]:checked').length;
+        const atualizar = () => {
+          const n = selecionadas();
+          m.querySelector('[data-contagem]').textContent = `${n} ${n === 1 ? 'tribo selecionada' : 'tribos selecionadas'}`;
+          if (n) m.querySelector('[data-erro-tribos]').hidden = true;
+        };
+        m.addEventListener('change', atualizar);
+        on(m, 'click', '[data-selecionar]', (btn) => {
+          m.querySelectorAll('[name=tribos]').forEach((c) => { c.checked = btn.dataset.selecionar === 'todas'; });
+          atualizar();
+        });
+        aoEnviar(formulario, async (d) => {
+          if (!d.tribos?.length) {
+            m.querySelector('[data-erro-tribos]').hidden = false;
+            m.querySelector('[name=tribos]')?.focus();
+            return;
+          }
+          const r = await api('POST', '/rallies', d);
+          toast(`Rally criado com ${d.tribos.length} ${d.tribos.length === 1 ? 'tribo' : 'tribos'}.`);
+          fechar();
+          await recarregar(r.id);
+        });
+      },
+    });
   }));
   on(el, 'click', '[data-usar]', (b) => acao(b, async () => {
     await definirRally(Number(b.dataset.usar));

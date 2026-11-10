@@ -13,7 +13,8 @@ if len(demo_password) < 8:
 api('POST','/auth/login',{'email':admin_email,'senha':admin_password})
 rs=api('GET','/rallies')
 if not rs:
-    r=api('POST','/rallies',{'nome':'Rally das Tribos 2026','data_inicio':'2026-09-14','data_fim':'2026-12-13','status':'ativo'})
+    catalogo=api('GET','/tribos')
+    r=api('POST','/rallies',{'tribos':[t['id'] for t in catalogo],'nome':'Rally das Tribos 2026','data_inicio':'2026-09-14','data_fim':'2026-12-13','status':'ativo'})
     rid=r['id']
     tribos=api('GET',f'/rallies/{rid}/tribos')
     nomes=['Ana Souza','Bruno Lima','Carla Dias','Daniel Rocha','Eduarda Melo','Felipe Alves','Gabriela Nunes','Henrique Costa','Isabela Ramos','João Pedro','Larissa Prado','Mateus Silva','Natália Gomes','Otávio Reis','Paula Freitas','Rafael Martins']
