@@ -7,7 +7,7 @@ async function iniciar() {
   await db.migrate.latest();
   await db.seed.run();
   const app = criarApp();
-  app.listen(config.porta, () => {
+  app.listen(config.porta, '0.0.0.0', () => {
     console.log(`Rally das Tribos rodando em http://localhost:${config.porta}`);
   });
 }
