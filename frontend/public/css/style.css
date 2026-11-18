@@ -57,8 +57,9 @@ button,a,input,select,textarea { touch-action:manipulation; }
 .kpi b { font-family:'Bebas Neue',sans-serif; font-size:2.1rem; letter-spacing:.02em; line-height:1.2; }
 .kpi span { font-size:.7rem; }
 .kpi--icone { display:flex; align-items:center; gap:.85rem; text-decoration:none; color:var(--texto); min-height:104px; }
-.kpi--icone>div { display:flex; flex-direction:column; gap:5px; }
-.kpi--icone>div>span { text-transform:uppercase; font-size:.59rem; letter-spacing:.06em; line-height:1.5; }
+.kpi--icone>div { display:flex; flex-direction:column; gap:5px; min-width:0; }
+.kpi--icone>div>span { text-transform:uppercase; font-size:.59rem; letter-spacing:.06em; line-height:1.5; overflow-wrap:anywhere; }
+.kpi--icone b { max-width:100%; overflow-wrap:anywhere; }
 .kpi__icone { display:grid; place-items:center; width:44px; height:44px; flex:none; border:1px solid #116582; border-radius:8px; color:var(--ciano); background:#042237; }
 .kpi__icone .icone-svg { width:27px; height:27px; }
 .btn { background:#071d30; border:1px solid #1e4963; border-radius:5px; color:#eef8ff; min-height:44px; padding:.65rem 1rem; font-family:'Inter',sans-serif; font-size:.8rem; font-weight:600; gap:.6rem; }
@@ -152,14 +153,14 @@ tbody tr:hover { background:#0a2236; }
 .rally-destaque { position:relative; isolation:isolate; overflow:hidden; min-height:255px; border:1px solid #156180; border-radius:7px; background:#082542; display:flex; align-items:center; }
 .rally-destaque::before { content:''; position:absolute; inset:0; z-index:-2; background:linear-gradient(90deg,#031326 5%,#0b3158a3 75%,#08284a55),url('/img/fundo-fju.webp') center 65%/cover; }
 .rally-destaque::after { content:''; position:absolute; right:8%; top:-20%; bottom:-30%; width:6%; background:#db193c; transform:skew(-30deg); opacity:.85; z-index:-1; box-shadow:25px 0 #0c73a14d,60px 0 #06203966; }
-.rally-destaque__conteudo { padding:1.6rem; max-width:75%; }
+.rally-destaque__conteudo { padding:1.6rem; width:62%; max-width:62%; min-width:0; }
 .rally-destaque .sobretitulo { color:#ff7189; font-size:.67rem; }
 .rally-destaque h2 { font-size:2.4rem; margin:.6rem 0; line-height:1; overflow-wrap:anywhere; }
 .rally-destaque p { font-size:.7rem; color:#d4e7f6; }
 .rally-destaque p span { color:#6a9eba; margin:0 .3rem; }
 .rally-destaque .botoes { margin-top:1.2rem; }
 .rally-destaque .btn { font-size:.73rem; min-height:38px; }
-.rally-destaque__frase { position:absolute; right:7%; top:50%; transform:translateY(-50%) skew(-9deg) rotate(-7deg); font-family:'Bebas Neue',sans-serif; font-size:2rem; line-height:.95; opacity:.83; color:#c9ecff; text-shadow:0 2px #06233b; }
+.rally-destaque__frase { position:absolute; right:7%; top:50%; max-width:28%; transform:translateY(-50%) skew(-9deg) rotate(-7deg); font-family:'Bebas Neue',sans-serif; font-size:2rem; line-height:.95; opacity:.83; color:#c9ecff; text-shadow:0 2px #06233b; overflow-wrap:anywhere; }
 .rally-destaque__frase i { color:white; font-style:normal; }
 .status-rally { display:inline-flex; align-items:center; gap:.4rem; color:#8cddce; font-size:.65rem; }
 .status-rally i { background:#55d6b3; width:5px; height:5px; border-radius:50%; }
@@ -192,7 +193,7 @@ tbody tr:hover { background:#0a2236; }
 .grafico { margin-top:1rem; height:240px; }
 /* Login: a fotografia é ilustrativa e permanece somente no fundo. */
 .nova-login { position:relative; isolation:isolate; min-height:100svh; padding:2rem 1.5rem; background:#04182b; display:grid; grid-template-columns:1fr; align-content:center; gap:2rem; }
-.nova-login::before { content:''; position:absolute; inset:0; z-index:-2; background:linear-gradient(115deg,#001021c9,#052b4bd9 50%,#001021f5),url('/img/fundo-fju.webp') center/cover; }
+.nova-login::before { content:''; position:absolute; inset:0; z-index:-2; background:linear-gradient(115deg,#000817e6,#031a34e6 50%,#000817f5),url('/img/login-auditorio.png') center/cover; }
 .nova-login::after { content:''; position:absolute; inset:0; z-index:-1; pointer-events:none; background:linear-gradient(128deg,transparent 19%,#bb15324a 19%,#bb15324a 23%,transparent 23%,transparent 66%,#08467955 66%,#08467955 71%,transparent 71%); }
 .login__topo { display:flex; justify-content:space-between; align-items:center; gap:1rem; width:100%; }
 .login__topo>span { font-size:.56rem; letter-spacing:.16em; color:#afcce0; }
@@ -410,8 +411,8 @@ body[data-sessao="publica"] .tema-publico { display:inline-flex; }
 [data-tema="claro"] .rally-destaque h2,[data-tema="claro"] .rally-destaque p { color:#fff; }
 [data-tema="claro"] .rally-destaque .sobretitulo { color:#ff8fa3; }
 [data-tema="claro"] .rally-destaque .btn { background:linear-gradient(100deg,#e51e3e,#cb1632); color:#fff; border-color:#e52644; }
-[data-tema="claro"] .nova-login { background:#e8f0f7; }
-[data-tema="claro"] .nova-login::before { background:linear-gradient(115deg,#071d3466,#103c5c55 50%,#ecf5ffc9),url('/img/fundo-fju.webp') center/cover; }
+[data-tema="claro"] .nova-login { background:#071d34; }
+[data-tema="claro"] .nova-login::before { background:linear-gradient(115deg,#071d34d9,#103c5caa 50%,#071d34c9),url('/img/login-auditorio.png') center/cover; }
 [data-tema="claro"] .login__formulario { background:#ffffffed; border-color:#accddd; }
 [data-tema="claro"] .login__formulario h1 { color:#15384f; }
 [data-tema="claro"] .login__formulario>p,[data-tema="claro"] .login__formulario .campo>span:first-child { color:#40677f; }
@@ -428,14 +429,16 @@ body[data-sessao="publica"] .tema-publico { display:inline-flex; }
   background-position:center,center; background-size:cover,cover; background-repeat:no-repeat;
 }
 .nova-login::before {
-  background-image:linear-gradient(115deg,#00102188,#052b4b55 50%,#001021aa),url('/img/fundo-fju.webp');
-  background-position:center,center; background-size:cover,100% auto; background-repeat:no-repeat;
+  background-image:linear-gradient(115deg,#000817aa,#031a34a8 50%,#000817cc),url('/img/login-auditorio.png');
+  background-position:center,center; background-size:cover,cover; background-repeat:no-repeat;
 }
 .rally-destaque::after,.nova-login::after { display:none; }
 [data-tema="claro"] .nova-login::before {
-  background-image:linear-gradient(115deg,#071d3455,#103c5c33 50%,#ecf5ff99),url('/img/fundo-fju.webp');
-  background-position:center,center; background-size:cover,100% auto; background-repeat:no-repeat;
+  background-image:linear-gradient(115deg,#071d34c9,#103c5c99 50%,#071d34c9),url('/img/login-auditorio.png');
+  background-position:center,center; background-size:cover,cover; background-repeat:no-repeat;
 }
 @media (max-width:999px) {
-  .nova-login::before,[data-tema="claro"] .nova-login::before { background-size:cover,auto 80%; }
+  .rally-destaque__conteudo { width:100%; max-width:100%; }
+  .rally-destaque__frase { display:none; }
+  .nova-login::before,[data-tema="claro"] .nova-login::before { background-size:cover,cover; }
 }
