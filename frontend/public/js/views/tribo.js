@@ -1,3 +1,4 @@
+import { emblema } from '../emblemas.js';
 import { api } from '../api.js';
 import { estado, ehAdmin, somenteLeitura, recarregarTribos } from '../estado.js';
 import {
@@ -15,7 +16,7 @@ export default async function tribo(el, { id }) {
  
   el.innerHTML = `
     <div class="cartao" style="border-top:8px solid ${esc(t.cor)}">
-      <div class="linha linha--entre"><h1 style="margin:0">${esc(t.nome)}</h1>
+      <div class="linha linha--entre"><div class="tribo-titulo">${emblema(t)}<h1 style="margin:0">${esc(t.nome)}</h1></div>
         ${admin ? `<div class="direita"><div class="pontos" style="font-size:1.6rem">${fmtPontos(t.pontos)}</div><div class="suave">${t.posicao}º de ${t.total_tribos}</div></div>` : ''}</div>
       <ul class="lista" style="margin-top:.5rem">
         <li><span class="cresce suave">Cabeça</span><b>${esc(t.cabeca_nome || '—')}</b></li>

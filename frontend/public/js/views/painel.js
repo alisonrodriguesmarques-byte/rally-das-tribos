@@ -1,50 +1,22 @@
 import { api } from '../api.js';
-import { rid } from '../estado.js';
-import { esc, fmtPontos, definirTitulo, grafico, vazio, itemRanking, semRally } from '../ui.js';
- 
+import { rid, estado } from '../estado.js';
+import { esc, fmtPontos, fmtData, definirTitulo, grafico, vazio, itemRanking, semRally, hoje } from '../ui.js';
+import { icone } from '../icones.js';
+import { emblema } from '../emblemas.js';
 export default async function painel(el) {
-  definirTitulo('Painel');
-  if (!rid()) {
-    el.innerHTML = semRally();
-    return;
-  }
-  const d = await api('GET', `/rallies/${rid()}/dashboard`);
+  definirTitulo('Início');
+  if (!rid()) { el.innerHTML = semRally(); return; }
+  const [d, ultimos] = await Promise.all([api('GET', `/rallies/${rid()}/dashboard`), api('GET', `/rallies/${rid()}/lancamentos?limite=5`)]);
   const max = Math.max(1, ...d.ranking.map((t) => t.pontos));
-  const kpi = (v, r, href) => `<${href ? `a href="${href}" style="text-decoration:none;color:inherit"` : 'div'} class="kpi"><b>${v}</b><span>${r}</span></${href ? 'a' : 'div'}>`;
-  el.innerHTML = `
-    <div class="grade grade--4">
-      ${kpi(fmtPontos(d.totais.participantes), 'participantes')}
-      ${kpi(fmtPontos(d.totais.pontos_distribuidos), 'pontos distribuídos')}
-      ${kpi(d.totais.entregas_pendentes, 'entregas aguardando', '#/missoes')}
-      ${kpi(d.dias_restantes, `dias restantes (de ${d.dias_totais})`)}
-    </div>
-    <div class="botoes" style="margin:.85rem 0">
-      <a class="btn btn--ouro" href="#/lancar">+ Lançar pontos</a>
-      <a class="btn" href="#/missoes">Missões</a>
-      <a class="btn" href="#/almas">Relatório de almas</a>
-    </div>
-    <div class="secao-titulo"><h2>Ranking</h2><a href="#/ranking">Ver completo</a></div>
-    ${d.ranking.slice(0, 5).map((t) => itemRanking(t, max)).join('')}
-    <div class="cartao" style="margin-top:.85rem"><h2>Evolução acumulada</h2><div class="grafico"><canvas id="g-evo"></canvas></div></div>
-    <div class="cartao"><h2>Pontos por semana</h2><div class="grafico" style="height:200px"><canvas id="g-sem"></canvas></div></div>
-    <div class="cartao"><h2>Pontos por categoria</h2>${d.por_categoria.length ? '<div class="grafico"><canvas id="g-cat"></canvas></div>' : vazio('Nenhum ponto lançado ainda.')}</div>
-`;
- 
-  grafico(el.querySelector('#g-evo'), {
-    type: 'line',
-    data: {
-      labels: d.semanas.rotulos,
-      datasets: d.semanas.series.map((s) => ({ label: s.tribo, data: s.acumulado, borderColor: s.cor, backgroundColor: s.cor, tension: 0.25, pointRadius: 2 })),
-    },
-  });
-  grafico(el.querySelector('#g-sem'), {
-    type: 'bar',
-    data: { labels: d.pontos_por_semana.map((s) => s.rotulo), datasets: [{ label: 'Pontos', data: d.pontos_por_semana.map((s) => s.pontos), backgroundColor: '#2d3b5e' }] },
-    options: { plugins: { legend: { display: false } } },
-  });
-  grafico(el.querySelector('#g-cat'), {
-    type: 'bar',
-    data: { labels: d.por_categoria.map((c) => c.categoria), datasets: [{ label: 'Pontos', data: d.por_categoria.map((c) => c.pontos), backgroundColor: '#f4b740' }] },
-    options: { indexAxis: 'y', plugins: { legend: { display: false } } },
-  });
+  const kpi = (v, r, icon, href) => `<${href ? `a href="${href}"` : 'div'} class="kpi kpi--icone"><span class="kpi__icone">${icone(icon)}</span><div><span>${r}</span><b>${v}</b></div></${href ? 'a' : 'div'}>`;
+  el.innerHTML = `<div class="pagina-cabecalho"><div><h1>Olá, ${esc(estado.usuario.nome.split(' ')[0])}!</h1><p>Bem-vindo ao Rally das Tribos. Que essa jornada seja de união e propósito!</p></div><span class="painel-data">${fmtData(hoje())}</span></div>
+    <section class="painel-destaque"><div class="rally-destaque"><div class="rally-destaque__conteudo"><div class="sobretitulo">${d.rally.status === 'ativo' ? 'NOSSO RALLY' : 'RALLY SELECIONADO'}</div><h2>${esc(d.rally.nome)}</h2><p>${fmtData(d.rally.data_inicio)} <span>—</span> ${fmtData(d.rally.data_fim)}</p><span class="status-rally"><i></i>${d.rally.status === 'ativo' ? 'Em andamento' : d.rally.status === 'encerrado' ? 'Encerrado' : 'Planejado'}</span><div class="botoes"><a class="btn btn--primario" href="#/rallies">Ver rally <span aria-hidden="true">→</span></a></div></div><div class="rally-destaque__frase" aria-hidden="true">JUNTOS<br>SOMOS<br>MAIS<br><i>FORTES.</i></div></div>
+    <div class="painel-indicadores">${kpi(d.totais.tribos, 'Tribos participantes', '🛡️', '#/tribos')}${kpi(fmtPontos(d.totais.participantes), 'Total de participantes', '👥', '#/pessoas')}${kpi(d.totais.entregas_pendentes, 'Entregas aguardando', '📒', '#/missoes')}${kpi(d.dias_restantes, 'Dias restantes', '🏁')}</div></section>
+    <div class="painel-acoes"><a class="btn btn--primario" href="#/lancar">${icone('+')} Lançar pontos</a><a class="btn" href="#/almas">${icone('📒')} Relatório semanal de almas</a><a class="btn" href="#/missoes">${icone('🎯')} Missões</a></div>
+    <section class="painel-conteudo"><div class="cartao painel-ranking"><div class="secao-titulo"><h2>Ranking geral</h2><a href="#/ranking">Ver completo →</a></div><div class="ranking-legenda"><span>POS.</span><span>TRIBO</span><span>PONTOS</span></div>${d.ranking.slice(0, 5).map((t) => itemRanking(t, max)).join('')}<div class="painel-total">PONTOS DISTRIBUÍDOS <strong>${fmtPontos(d.totais.pontos_distribuidos)}</strong></div></div>
+    <div class="cartao painel-atualizacoes"><div class="secao-titulo"><h2>Últimos lançamentos</h2><a href="#/lancamentos" aria-label="Ver histórico de pontos">↗</a></div>${ultimos.length ? `<ul class="lista">${ultimos.slice(0, 5).map((l) => `<li>${emblema(l.tribo_nome, 'emblema--atualizacao')}<div class="cresce"><b>${esc(l.tribo_nome)}</b><p>${esc(l.motivo)}</p><small>${fmtData(l.data_referencia)}</small></div><span class="pontos ${l.pontos >= 0 ? 'pontos--pos' : 'pontos--neg'}">${fmtPontos(l.pontos, true)}</span></li>`).join('')}</ul>` : vazio('Os lançamentos aparecerão aqui.')}<a class="painel-relatorio" href="#/almas"><span>${icone('📒')}</span><div><b>Relatório de almas</b><small>Acompanhe os envios da semana.</small></div>→</a></div></section>
+    <section class="painel-graficos"><div class="cartao"><div class="secao-titulo"><h2>Evolução das tribos</h2><span class="suave pequeno">Pontuação acumulada</span></div><div class="grafico"><canvas id="g-evo"></canvas></div></div><div class="cartao"><h2>Pontos por semana</h2><div class="grafico"><canvas id="g-sem"></canvas></div></div><div class="cartao"><h2>Pontos por categoria</h2>${d.por_categoria.length ? '<div class="grafico"><canvas id="g-cat"></canvas></div>' : vazio('Nenhum ponto lançado ainda.')}</div></section>`;
+  grafico(el.querySelector('#g-evo'), { type:'line', data:{labels:d.semanas.rotulos,datasets:d.semanas.series.map((s)=>({label:s.tribo,data:s.acumulado,borderColor:s.cor,backgroundColor:s.cor,tension:.25,pointRadius:2}))} });
+  grafico(el.querySelector('#g-sem'), {type:'bar',data:{labels:d.pontos_por_semana.map(s=>s.rotulo),datasets:[{label:'Pontos',data:d.pontos_por_semana.map(s=>s.pontos),backgroundColor:'#1378a6',borderRadius:3}]},options:{plugins:{legend:{display:false}}}});
+  grafico(el.querySelector('#g-cat'), {type:'bar',data:{labels:d.por_categoria.map(c=>c.categoria),datasets:[{label:'Pontos',data:d.por_categoria.map(c=>c.pontos),backgroundColor:'#db3848',borderRadius:3}]},options:{indexAxis:'y',plugins:{legend:{display:false}}}});
 }

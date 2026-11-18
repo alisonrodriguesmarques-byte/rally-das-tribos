@@ -1,3 +1,4 @@
+import { emblema } from './emblemas.js';
 import { estado, ehAdmin } from './estado.js';
  
 export const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({
@@ -214,9 +215,20 @@ export async function acao(btn, fn) {
 }
  
 const graficos = [];
+let carregamentoChart;
+function carregarChart() {
+  if (window.Chart) return Promise.resolve();
+  if (!carregamentoChart) carregamentoChart = new Promise((resolve, reject) => {
+    const script = document.createElement('script'); script.src = '/vendor/chart.umd.js'; script.async = true;
+    script.onload = () => { window.Chart.defaults.color = '#9bb5c9'; window.Chart.defaults.borderColor = '#123149'; window.Chart.defaults.font.family = 'Inter, sans-serif'; resolve(); };
+    script.onerror = () => { carregamentoChart = null; script.remove(); reject(new Error('Não foi possível carregar os gráficos. Recarregue a página.')); };
+    document.head.append(script);
+  });
+  return carregamentoChart;
+}
 export async function grafico(canvas, config) {
   if (!canvas) return null;
-  if (!window.Chart) await new Promise((r) => window.addEventListener('load', r, { once: true }));
+  await carregarChart();
   if (!canvas.isConnected || !window.Chart) return null;
   const c = new window.Chart(canvas, {
     ...config,
@@ -238,7 +250,7 @@ export function itemRanking(t, max) {
   const pct = max > 0 ? Math.max(2, Math.round((Math.max(0, t.pontos) / max) * 100)) : 0;
   const lideres = [t.cabeca_nome, t.auxiliar_nome].filter(Boolean).join(' · ');
   return `<a class="ranking__item ranking__item--${t.posicao}" style="--cor:${esc(t.cor)}" href="#/tribos/${t.rally_tribo_id}">
-    <span class="ranking__pos">${t.posicao}º</span>
+    <span class="ranking__pos">${t.posicao}º</span>${emblema(t, 'emblema--ranking')}
     <div class="cresce"><div class="ranking__nome">${esc(t.tribo)}</div>
       ${lideres ? `<div class="suave pequeno">${esc(lideres)}</div>` : ''}
       <div class="ranking__barra"><i style="width:${pct}%"></i></div></div>

@@ -1,3 +1,4 @@
+import { emblema } from '../emblemas.js';
 import { icone } from '../icones.js';
 import { api } from '../api.js';
 import { rid, ehAdmin } from '../estado.js';
@@ -38,7 +39,7 @@ async function classificacao(corpo) {
   const lista = await api('GET', `/rallies/${rid()}/ranking`);
   const max = Math.max(1, ...lista.map((t) => t.pontos));
   const [p1, p2, p3] = lista;
-  const podio = (t, cls, med) => (t ? `<div class="${cls}" style="--cor:${esc(t.cor)}"><span class="med">${icone(med)}</span><b>${esc(t.tribo)}</b><span class="pontos">${fmtPontos(t.pontos)}</span></div>` : '<div></div>');
+  const podio = (t, cls, med) => (t ? `<div class="${cls}" style="--cor:${esc(t.cor)}"><span class="med">${icone(med)}</span>${emblema(t)}<b>${esc(t.tribo)}</b><span class="pontos">${fmtPontos(t.pontos)}</span></div>` : '<div></div>');
   corpo.innerHTML = `${lista.some((t) => t.pontos) ? `<div class="podio">${podio(p2, 'p2', '🥈')}${podio(p1, 'p1', '🥇')}${podio(p3, 'p3', '🥉')}</div>` : ''}
     ${lista.map((t) => itemRanking(t, max)).join('')}
     <p class="suave pequeno" style="text-align:center">Atualiza sozinho a cada 30 segundos.</p>

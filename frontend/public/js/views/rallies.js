@@ -1,3 +1,4 @@
+import { emblema } from '../emblemas.js';
 import { api } from '../api.js';
 import { estado, carregarRallies, definirRally } from '../estado.js';
 import {
@@ -12,7 +13,7 @@ const form = (r = {}, novo = false, catalogo = []) => `<form>
   <fieldset class="rally-selecao"><legend>Tribos participantes *</legend>
     <p class="suave pequeno">Marque apenas as tribos que participarão deste rally.</p>
     <div class="botoes"><button class="btn btn--peq" type="button" data-selecionar="todas">Selecionar todas</button><button class="btn btn--peq" type="button" data-selecionar="nenhuma">Limpar seleção</button></div>
-    <div class="rally-opcoes">${catalogo.map((t) => `<label class="check"><input type="checkbox" name="tribos" data-lista value="${t.id}"><span class="bolinha" style="background:${esc(t.cor)}"></span>${esc(t.nome)}</label>`).join('')}</div>
+    <div class="rally-opcoes">${catalogo.map((t) => `<label class="check"><input type="checkbox" name="tribos" data-lista value="${t.id}">${emblema(t, 'emblema--selecao')}${esc(t.nome)}</label>`).join('')}</div>
     <p class="suave pequeno" data-contagem aria-live="polite">0 tribos selecionadas</p>
     <p class="rally-erro-tribos" data-erro-tribos hidden>Selecione pelo menos uma tribo para criar o rally.</p>
   </fieldset>

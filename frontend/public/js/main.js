@@ -1,3 +1,4 @@
+import { marca } from './marca.js';
 import { icone } from './icones.js';
 import { api } from './api.js';
 import { estado, carregarSessao, ehAdmin, definirRally, somenteLeitura } from './estado.js';
@@ -32,19 +33,25 @@ const NAV_MEMBRO = [['/', '🏠', 'Início'], ['/almas', '📒', 'Almas'], ['/mi
 const app = document.getElementById('app');
 const topo = document.getElementById('topo');
 const nav = document.getElementById('nav');
+const lateral = document.getElementById('lateral');
 let execucao = 0;
  
 function atualizarLayout(rota, caminho) {
   const publica = Boolean(rota.publica);
+  document.body.dataset.sessao = publica ? 'publica' : 'privada';
   topo.hidden = publica;
+  lateral.hidden = publica;
   nav.hidden = publica;
   app.className = publica ? '' : 'conteudo';
-  if (publica) return;
+  if (publica) { lateral.replaceChildren(); return; }
   const r = estado.rally;
   document.getElementById('topo-rally').textContent = r ? `${r.nome}${r.status === 'encerrado' ? ' (encerrado)' : ''}` : 'Nenhum rally';
   document.getElementById('btn-voltar').hidden = !rota.voltar;
   const itens = ehAdmin() ? NAV_ADMIN : NAV_MEMBRO.filter(([href]) => href !== '/almas' || ['cabeca', 'auxiliar'].includes(estado.ctx?.funcao));
   const raiz = `/${caminho.split('/')[1] || ''}`;
+  const sidebarItens = ehAdmin() ? [['/', '🏠', 'Início'], ['/rallies', '🏁', 'Rallies'], ['/tribos', '🛡️', 'Tribos'], ['/pessoas', '👥', 'Participantes'], ['/ranking', '🏆', 'Ranking'], ['/almas', '📒', 'Relatório de almas'], ['/missoes', '🎯', 'Missões'], ['/lancar', '+', 'Lançar pontos'], ['/mais', '☰', 'Mais opções']] : [['/', '🏠', 'Início'], ['/tribos', '🛡️', 'Tribos'], ...(['cabeca', 'auxiliar'].includes(estado.ctx?.funcao) ? [['/almas', '📒', 'Relatório de almas']] : []), ['/missoes', '🎯', 'Missões'], ['/mais', '☰', 'Mais opções']];
+  lateral.innerHTML = `<a class="lateral__marca" href="#/">${marca()}</a><div class="lateral__legenda">UNIDOS POR UM SÓ PROPÓSITO</div><div class="lateral__grupo">${ehAdmin() ? 'ADMINISTRAÇÃO' : 'MINHA JORNADA'}</div><nav class="lateral__links">${sidebarItens.map(([href, ico, rotulo]) => `<a href="#${href}"${raiz === href ? ' class="ativo" aria-current="page"' : ''}>${icone(ico)}<span>${rotulo}</span></a>`).join('')}</nav><div class="lateral__rodape"><span class="usuario-inicial">${esc(estado.usuario.nome.slice(0, 1))}</span><div><b>${esc(estado.usuario.nome)}</b><small>${ehAdmin() ? 'Administrador' : {cabeca:'Cabeça de tribo',auxiliar:'Auxiliar',participante:'Participante'}[estado.ctx?.funcao] || 'Membro'}</small></div><button type="button" id="lateral-sair" aria-label="Sair da conta">${icone('🚪')}</button></div>`;
+  lateral.querySelector('#lateral-sair').addEventListener('click', sair);
   nav.innerHTML = itens.map(([href, ico, rotulo, destaque]) => `
     <a href="#${href}" class="${raiz === href ? 'ativo' : ''}${destaque ? ' destaque' : ''}"><span class="ico">${icone(ico)}</span>${esc(rotulo)}</a>`).join('');
 }
@@ -74,6 +81,7 @@ async function renderizar() {
   }
   let vista = rota.vista;
   if (vista === 'inicio' && ehAdmin()) vista = 'painel';
+  app.dataset.view = vista;
   const params = caminho.match(rota.regex)?.groups || {};
  
   fecharModais();

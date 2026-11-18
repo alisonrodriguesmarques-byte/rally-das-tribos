@@ -1,0 +1,19 @@
+{
+  "checks": 124,
+  "widths": [
+    320,
+    390,
+    768,
+    1024,
+    1440
+  ],
+  "backendTests": 26,
+  "errors": [],
+  "externalRequests": [],
+  "failedRequests": [],
+  "memberChartsLoaded": false,
+  "tribesSearch": true,
+  "rallySelection": true,
+  "reportSubmit": true,
+  "printWhiteBackground": true
+}

@@ -1,3 +1,4 @@
+import { emblema } from '../emblemas.js';
 import { api } from '../api.js';
 import { estado, rid, somenteLeitura, recarregarTribos, triboPorId } from '../estado.js';
 import {
@@ -45,7 +46,7 @@ export default async function lancar(el, _p, query) {
   const desenharTribos = () => {
     el.querySelector('#tribos').innerHTML = estado.tribos.map((t) => `
       <button type="button" class="tribo-btn${st.tribo === t.id ? ' ativo' : ''}" data-tribo="${t.id}" style="--cor:${esc(t.cor)}">
-        <span class="bolinha" style="background:${esc(t.cor)}"></span>${esc(t.nome)}<span class="suave pequeno">${fmtPontos(t.pontos)}</span></button>`).join('');
+        ${emblema(t)}${esc(t.nome)}<span class="suave pequeno">${fmtPontos(t.pontos)}</span></button>`).join('');
   };
   const atualizarBotao = () => {
     const t = triboPorId(st.tribo);

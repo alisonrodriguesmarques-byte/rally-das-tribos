@@ -1,0 +1,312 @@
+/* RALLY DAS TRIBOS · Identidade visual FJU
+   Camada visual sobre app.css. Sem bibliotecas de interface ou animações contínuas. */
+@font-face { font-family:'Bebas Neue'; src:url('/fonts/bebas-neue.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
+@font-face { font-family:'Inter'; src:url('/fonts/inter.woff2') format('woff2'); font-style:normal; font-weight:100 900; font-display:swap; }
+@font-face { font-family:'Montserrat'; src:url('/fonts/montserrat.woff2') format('woff2'); font-style:normal; font-weight:100 900; font-display:swap; }
+:root {
+  color-scheme:dark;
+  --azul:#102a43; --azul-2:#9cdcf3; --ouro:#db3848;
+  --fundo:#030e1c; --cartao:#041526; --texto:#f6f8fb; --suave:#9bb5c9;
+  --borda:#16405a; --verde:#67ddc6; --vermelho:#ff8194; --laranja:#f4c577;
+  --ciano:#05c5ec; --vermelho-fju:#db3848; --azul-fju:#173b65;
+  --raio:8px; --sombra:none; --nav-h:66px; --lateral-w:230px; --topo-h:72px;
+}
+body { font-family:'Inter',sans-serif; font-size:14px; background:var(--fundo); color:var(--texto); }
+body::selection { background:#db3848; color:white; }
+h1,h2,h3 { font-family:'Bebas Neue','Arial Narrow',sans-serif; font-weight:400; letter-spacing:.035em; line-height:1.15; }
+h1 { font-size:2.15rem; } h2 { font-size:1.5rem; } h3 { font-size:1.2rem; }
+a { color:#71cde9; text-underline-offset:3px; }
+button,input,select,textarea { -webkit-tap-highlight-color:transparent; }
+button,a,input,select,textarea { touch-action:manipulation; }
+:focus-visible { outline:2px solid var(--ciano); outline-offset:4px; }
+.pular-conteudo { position:fixed; top:-80px; left:16px; z-index:100; padding:12px; background:#db3848; color:white; }
+.pular-conteudo:focus { top:12px; }
+.sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.sobretitulo { font-family:'Montserrat',sans-serif; font-size:.65rem; font-weight:700; letter-spacing:.16em; color:var(--ciano); }
+.marca-rally { display:inline-flex; flex-direction:column; color:#fff; font-family:'Bebas Neue','Arial Narrow',sans-serif; font-style:italic; transform:skew(-7deg); text-decoration:none; line-height:.85; }
+.marca-rally>span { font-size:3.7rem; letter-spacing:-.015em; }
+.marca-rally small { font-size:1.65rem; padding-left:.25rem; letter-spacing:.015em; margin-top:.18em; }
+.marca-rally small i { color:#ed304a; font-size:.72em; font-style:inherit; }
+.fju-palavra { display:inline-flex; flex-direction:column; color:white; font-family:'Montserrat',sans-serif; font-weight:900; font-style:italic; font-size:2.7rem; letter-spacing:-.09em; line-height:1; text-decoration:none; }
+.fju-palavra small { font-size:.45rem; font-style:normal; letter-spacing:.02em; margin-top:5px; }
+.topo { min-height:var(--topo-h); padding:.75rem 1.25rem; background:#031223; border-bottom:1px solid var(--borda); gap:.8rem; }
+.topo__titulo { gap:3px; }
+.topo__titulo strong { font-family:'Montserrat',sans-serif; font-size:.95rem; font-weight:600; letter-spacing:.02em; }
+.topo__titulo small { font-size:.7rem; color:#8bb6ce; opacity:1; }
+.topo__voltar,.topo__acao { background:#071e32; border:1px solid var(--borda); color:#eaf7ff; border-radius:6px; }
+.topo__acao { width:auto; min-width:44px; padding:0 .8rem; font-family:'Inter',sans-serif; font-size:.73rem; display:flex; align-items:center; justify-content:center; gap:.6rem; }
+.topo__acao span { color:var(--ciano); font-size:1.2rem; }
+.conteudo { max-width:1180px; padding:1.5rem 1rem calc(var(--nav-h) + 1.5rem); }
+.lateral { display:none; }
+.nav { border-color:var(--borda); background:#031223; }
+.nav a { color:#9bb5c9; font-size:.65rem; font-weight:500; min-width:0; }
+.nav a.ativo { color:#fff; background:#0b2539; box-shadow:inset 0 2px var(--ciano); }
+.nav a .ico { font-size:1.3rem; }
+.nav a.destaque .ico { background:#e31e3b; color:white; width:44px; height:44px; border-radius:10px; border:1px solid #ff4b61; margin-top:-14px; }
+.pagina-cabecalho { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:0 0 1.5rem; }
+.pagina-cabecalho h1 { margin-bottom:.3rem; }
+.pagina-cabecalho p { font-size:.8rem; color:var(--suave); margin:0; line-height:1.65; }
+.pagina-cabecalho .sobretitulo { margin-bottom:.35rem; }
+.painel-data { color:var(--suave); font-size:.75rem; white-space:nowrap; }
+.cartao,.kpi { background:linear-gradient(120deg,#061a2c,#031121); border:1px solid var(--borda); box-shadow:none; border-radius:var(--raio); }
+.cartao { padding:1.25rem; margin-bottom:1rem; }
+.cartao>.secao-titulo:first-child { margin:0 0 1rem; }
+.cartao>.secao-titulo h2 { font-size:1.25rem; }
+.grade { gap:.85rem; }
+.kpi { padding:1.2rem; }
+.kpi b { font-family:'Bebas Neue',sans-serif; font-size:2.1rem; letter-spacing:.02em; line-height:1.2; }
+.kpi span { font-size:.7rem; }
+.kpi--icone { display:flex; align-items:center; gap:.85rem; text-decoration:none; color:var(--texto); min-height:104px; }
+.kpi--icone>div { display:flex; flex-direction:column; gap:5px; }
+.kpi--icone>div>span { text-transform:uppercase; font-size:.59rem; letter-spacing:.06em; line-height:1.5; }
+.kpi__icone { display:grid; place-items:center; width:44px; height:44px; flex:none; border:1px solid #116582; border-radius:8px; color:var(--ciano); background:#042237; }
+.kpi__icone .icone-svg { width:27px; height:27px; }
+.btn { background:#071d30; border:1px solid #1e4963; border-radius:5px; color:#eef8ff; min-height:44px; padding:.65rem 1rem; font-family:'Inter',sans-serif; font-size:.8rem; font-weight:600; gap:.6rem; }
+.btn:hover { background:#0d2b43; border-color:#2194b4; }
+.btn--primario,.btn--ouro { background:linear-gradient(100deg,#e51e3e,#cb1632); color:white; border-color:#e52644; }
+.btn--primario:hover,.btn--ouro:hover { background:#f12c4a; border-color:#ff6981; }
+.btn--verde { background:#0b413e; color:#8ff0d5; border-color:#146458; }
+.btn--perigo { background:#311521; color:#ffb0be; border-color:#783043; }
+.btn--peq { min-height:38px; font-size:.73rem; }
+.btn .icone-svg { width:17px; height:17px; }
+.botoes { gap:.6rem; }
+.campo>span { font-size:.78rem; font-weight:500; margin-bottom:.5rem; color:#b4d5e9; }
+input,select,textarea { background:#04182a; border-color:#1b4c68; color:var(--texto); min-height:46px; border-radius:5px; font-size:.85rem; }
+input::placeholder,textarea::placeholder { color:#7192ab; opacity:1; }
+input:focus,select:focus,textarea:focus { border-color:var(--ciano); outline:2px solid #05c5ec33; }
+input[type=checkbox],input[type=radio] { accent-color:#e92545; }
+.check { font-size:.82rem; line-height:1.5; }
+.etiqueta { background:#102b42; color:#d4eafd; border:1px solid #24506c; border-radius:4px; font-size:.64rem; font-weight:500; }
+.etiqueta--verde { color:#77e6cb; background:#073a37; border-color:#0e6258; }
+.etiqueta--azul { color:#70d9f8; background:#062b40; border-color:#145872; }
+.etiqueta--laranja { color:#f4d18d; background:#382f1c; border-color:#69562d; }
+.etiqueta--vermelho { color:#ffb0bc; background:#3b1524; border-color:#723145; }
+.aviso { color:#efcf91; background:#282519; border-color:#655b2c; border-radius:6px; font-size:.82rem; }
+.aviso--erro { background:#301322; border-color:#7e3049; color:#ffb1c1; }
+.suave { color:var(--suave); font-size:.82rem; }
+.pequeno { font-size:.75rem; }
+.erro-campo,.rally-erro-tribos { color:#ff9bb0; }
+.lista>li,.item { border-color:#102f45; padding:.9rem .2rem; }
+.item--link:active { background:#0b2c40; }
+.vazio { color:#8faec4; font-size:.85rem; }
+.avatar { font-size:.75rem; }
+.modal-fundo { background:#000a15d9; }
+.modal { background:#05192b; border:1px solid #1b5c77; border-radius:10px 10px 0 0; }
+.modal__topo { padding-bottom:.75rem; border-bottom:1px solid var(--borda); }
+.modal__topo h2 { font-size:1.6rem; }
+.modal__fechar { border:1px solid #27516b; background:#0c2940; color:white; border-radius:6px; }
+.toast { background:#0b3147; color:white; border:1px solid #1b91b4; border-radius:6px; font-size:.8rem; }
+.toast--erro { background:#571c30; border-color:#9f3b59; }
+.chip { background:#061a2d; border-color:#21445f; color:#b9d3e7; border-radius:5px; font-size:.8rem; min-height:42px; }
+.chip.ativo { background:#123d56; border-color:#05a7ce; color:#e7fbff; }
+.tribo-btn { background:#04182a; border:1px solid #1a435b; border-radius:6px; color:white; font-size:.83rem; }
+.tribo-btn.ativo { background:#102c40; border-color:var(--ciano); outline:1px solid var(--ciano); }
+.tribo-btn .emblema { width:50px; height:50px; }
+.menu-grade a,.menu-grade button { background:#061a2c; border:1px solid var(--borda); color:var(--texto); border-radius:7px; box-shadow:none; font-size:.86rem; }
+.menu-grade .ico { color:var(--ciano); }
+.tabela-wrap { border:1px solid var(--borda); border-radius:6px; }
+th { color:#9dc5dd; font-size:.68rem; text-transform:uppercase; letter-spacing:.04em; background:#0b263c; }
+td { font-size:.8rem; }
+th,td { padding:.8rem .7rem; border-color:#123148; }
+tbody tr:hover { background:#0a2236; }
+.pontos--pos { color:#60dbc6; } .pontos--neg { color:#ff8ca4; }
+.emblema { width:64px; height:64px; object-fit:cover; display:block; border-radius:50%; flex:none; }
+.emblema--texto { background:#0a2941; color:#83ddf6; border:1px solid #227d9d; align-items:center; justify-content:center; display:inline-flex; font-family:'Bebas Neue',sans-serif; font-size:1.6rem; text-transform:uppercase; }
+.emblema--ranking { width:38px; height:38px; }
+.emblema--atualizacao { width:34px; height:34px; }
+.emblema--selecao { width:28px; height:28px; font-size:.9rem; }
+.ranking__item { background:#051a2b; box-shadow:none; border:1px solid #14364d; border-left:3px solid var(--cor); border-radius:5px; gap:.8rem; padding:.8rem; }
+.ranking__pos { width:28px; flex:none; font-size:.95rem; }
+.ranking__item--1 .ranking__pos { color:#f0bd51; }
+.ranking__nome { font-size:.85rem; }
+.ranking__pontos { font-size:1rem; }
+.ranking__barra { background:#102d42; height:3px; margin-top:.45rem; }
+.ranking__item .suave { font-size:.7rem; }
+.podio>div { background:#061b2e; border:1px solid #16415d; border-top:3px solid var(--cor); border-radius:6px; box-shadow:none; }
+.podio b { font-size:1.1rem; font-family:'Bebas Neue',sans-serif; letter-spacing:.04em; }
+.podio .emblema { width:56px; height:56px; margin:.6rem auto; }
+.podio .med { color:#e5bb62; }
+.tribo-titulo { display:flex; align-items:center; gap:1rem; }
+.tribos-catalogo { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+.tribo-card { border:1px solid #154863; border-radius:7px; padding:1.3rem .7rem .9rem; display:flex; flex-direction:column; align-items:center; text-decoration:none; text-align:center; color:var(--texto); background:linear-gradient(140deg,#092238,#031121); min-width:0; }
+.tribo-card:hover { border-color:var(--ciano); background:#0b2b42; }
+.tribo-card .emblema { width:100px; height:100px; margin-bottom:1rem; }
+.tribo-card h2 { font-size:1.7rem; margin:0; }
+.tribo-card>p { color:var(--suave); font-size:.75rem; margin:.6rem 0 .3rem; }
+.tribo-card__lider { color:#9bbdd4; font-size:.7rem; }
+.tribo-card__pontos { display:flex; align-items:baseline; gap:.4rem; margin-top:.8rem; }
+.tribo-card__pontos b { color:white; font-size:1.1rem; }
+.tribo-card__pontos span { color:var(--suave); font-size:.65rem; }
+.tribo-card__link { display:flex; justify-content:space-between; width:100%; border-top:1px solid #15405a; margin-top:1rem; padding-top:.8rem; font-size:.65rem; color:#80d6f1; }
+.busca-tribos { max-width:380px; margin-bottom:1.25rem; }
+.rally-selecao { border-color:#214a63; border-radius:7px; }
+.rally-opcoes .check { background:#071f32; border-color:#184661; border-radius:5px; gap:.45rem; }
+.rally-opcoes .check:has(input:checked) { background:#12334b; border-color:#08afd5; }
+.almas-tabela tfoot { background:#0c2b40; }
+.almas-tabela th { white-space:normal; }
+.almas-cabecalho h1 { font-size:2rem; }
+.almas-tabela th,.almas-tabela td { border-color:#1b3a4f; }
+.almas-tabela input { background:#031422; }
+/* Abertura do painel */
+.painel-destaque { display:grid; gap:1rem; margin-bottom:1rem; }
+.rally-destaque { position:relative; isolation:isolate; overflow:hidden; min-height:255px; border:1px solid #156180; border-radius:7px; background:#082542; display:flex; align-items:center; }
+.rally-destaque::before { content:''; position:absolute; inset:0; z-index:-2; background:linear-gradient(90deg,#031326 5%,#0b3158a3 75%,#08284a55),url('/img/encontro.webp') center 65%/cover; }
+.rally-destaque::after { content:''; position:absolute; right:8%; top:-20%; bottom:-30%; width:6%; background:#db193c; transform:skew(-30deg); opacity:.85; z-index:-1; box-shadow:25px 0 #0c73a14d,60px 0 #06203966; }
+.rally-destaque__conteudo { padding:1.6rem; max-width:75%; }
+.rally-destaque .sobretitulo { color:#ff7189; font-size:.67rem; }
+.rally-destaque h2 { font-size:2.4rem; margin:.6rem 0; line-height:1; overflow-wrap:anywhere; }
+.rally-destaque p { font-size:.7rem; color:#d4e7f6; }
+.rally-destaque p span { color:#6a9eba; margin:0 .3rem; }
+.rally-destaque .botoes { margin-top:1.2rem; }
+.rally-destaque .btn { font-size:.73rem; min-height:38px; }
+.rally-destaque__frase { position:absolute; right:7%; top:50%; transform:translateY(-50%) skew(-9deg) rotate(-7deg); font-family:'Bebas Neue',sans-serif; font-size:2rem; line-height:.95; opacity:.83; color:#c9ecff; text-shadow:0 2px #06233b; }
+.rally-destaque__frase i { color:white; font-style:normal; }
+.status-rally { display:inline-flex; align-items:center; gap:.4rem; color:#8cddce; font-size:.65rem; }
+.status-rally i { background:#55d6b3; width:5px; height:5px; border-radius:50%; }
+.painel-indicadores { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.8rem; }
+.painel-acoes { display:flex; flex-wrap:wrap; gap:.6rem; margin:1.3rem 0 1.5rem; }
+.painel-conteudo { display:grid; gap:1rem; align-items:start; }
+.painel-conteudo .cartao { min-width:0; }
+.painel-ranking .secao-titulo a { font-size:.7rem; text-decoration:none; }
+.ranking-legenda { display:grid; grid-template-columns:40px 1fr 70px; font-size:.6rem; letter-spacing:.05em; color:#9ac1d7; background:#0b293f; padding:.6rem .5rem; margin-bottom:.25rem; }
+.ranking-legenda span:last-child { text-align:right; }
+.painel-ranking .ranking__item { margin:0; border-radius:0; border:0; border-bottom:1px solid #10344b; background:transparent; padding:.7rem .25rem; }
+.painel-ranking .ranking__barra { display:none; }
+.painel-ranking .ranking__pos { width:22px; font-size:.8rem; }
+.painel-ranking .ranking__item .suave { font-size:.64rem; }
+.painel-total { display:flex; justify-content:space-between; align-items:center; margin-top:.8rem; font-size:.6rem; letter-spacing:.05em; color:#8cb9d2; }
+.painel-total strong { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; color:white; }
+.painel-atualizacoes .lista>li { align-items:center; gap:.6rem; padding:.9rem 0; }
+.painel-atualizacoes .lista b { font-size:.76rem; }
+.painel-atualizacoes .lista p { font-size:.7rem; color:#9ab7cd; margin:.25rem 0; }
+.painel-atualizacoes .lista small { color:#638fac; font-size:.61rem; }
+.painel-atualizacoes .lista .pontos { font-size:.8rem; }
+.painel-relatorio { padding:.9rem; margin-top:1rem; border:1px solid #15516b; border-radius:5px; display:flex; gap:.7rem; align-items:center; text-decoration:none; }
+.painel-relatorio>span { font-size:1.5rem; color:var(--ciano); }
+.painel-relatorio>div { flex:1; }
+.painel-relatorio b { display:block; font-size:.75rem; color:white; }
+.painel-relatorio small { font-size:.65rem; color:#8ab6ce; }
+.painel-graficos { display:grid; gap:1rem; }
+.painel-graficos .cartao { min-width:0; }
+.painel-graficos h2 { font-size:1.2rem; }
+.grafico { margin-top:1rem; height:240px; }
+/* Login: a fotografia é ilustrativa e permanece somente no fundo. */
+.nova-login { position:relative; isolation:isolate; min-height:100svh; padding:2rem 1.5rem; background:#04182b; display:grid; grid-template-columns:1fr; align-content:center; gap:2rem; }
+.nova-login::before { content:''; position:absolute; inset:0; z-index:-2; background:linear-gradient(115deg,#001021c9,#052b4bd9 50%,#001021f5),url('/img/encontro.webp') center/cover; }
+.nova-login::after { content:''; position:absolute; inset:0; z-index:-1; pointer-events:none; background:linear-gradient(128deg,transparent 19%,#bb15324a 19%,#bb15324a 23%,transparent 23%,transparent 66%,#08467955 66%,#08467955 71%,transparent 71%); }
+.login__topo { display:flex; justify-content:space-between; align-items:center; gap:1rem; width:100%; }
+.login__topo>span { font-size:.56rem; letter-spacing:.16em; color:#afcce0; }
+.login__apresentacao { text-align:center; }
+.login__sobretitulo { font-family:'Montserrat',sans-serif; color:#8ec4de; font-size:.58rem; letter-spacing:.17em; margin-bottom:1.5rem; }
+.login__apresentacao .marca-rally>span { font-size:6rem; }
+.login__apresentacao .marca-rally small { font-size:2.8rem; }
+.login__apresentacao>p { font-size:.55rem; letter-spacing:.2em; font-weight:600; color:#c4dced; margin:1.3rem 0; }
+.login__linha { width:42px; height:3px; background:#e92544; margin:1.2rem auto; }
+.login__apresentacao>span:not(.marca-rally) { font-size:.7rem; color:#9bc0d7; }
+.login__formulario { background:#031526ec; padding:1.8rem; border:1px solid #15506a; border-radius:7px; width:100%; max-width:420px; justify-self:center; }
+.login__boasvindas { color:var(--ciano); font-size:.52rem; letter-spacing:.14em; font-weight:600; margin-bottom:.75rem; }
+.login__formulario h1 { font-family:'Montserrat',sans-serif; letter-spacing:0; font-size:1.25rem; font-weight:600; }
+.login__formulario>p { font-size:.77rem; margin:.7rem 0 1.8rem; color:#a5c5db; }
+.login__formulario .campo { margin-bottom:1.1rem; }
+.login__formulario .campo>span:first-child { color:#91c2de; font-size:.71rem; }
+.senha-campo { display:flex!important; position:relative; }
+.senha-campo input { padding-right:46px; }
+.senha-campo button { position:absolute; right:2px; top:2px; width:42px; height:42px; background:transparent; border:0; color:#86bfdc; cursor:pointer; }
+.login__formulario .btn { justify-content:space-between; margin-top:1.5rem; }
+.login__formulario .login__apoio { margin:1rem 0 1.5rem; text-align:center; font-size:.65rem; }
+.login__base { border-top:1px solid #173b50; padding-top:1rem; display:flex; justify-content:space-between; color:#638ba6; font-size:.56rem; letter-spacing:.1em; }
+.login__base span { color:white; font-style:italic; font-weight:800; }
+.login__rodape { text-align:center; font-size:.55rem; letter-spacing:.18em; color:#a0bfd4; }
+.login__rodape span { margin:0 .9rem; color:#db3848; }
+@media (min-width:680px) {
+  .tribos-catalogo { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .painel-conteudo { grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); }
+  .painel-graficos { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .painel-graficos .cartao:first-child { grid-column:1/-1; }
+  .modal { border-radius:9px; }
+}
+@media (min-width:1000px) {
+  .lateral { display:flex; flex-direction:column; position:fixed; inset:0 auto 0 0; width:var(--lateral-w); z-index:30; background:linear-gradient(160deg,#061a2d,#020d1b 70%); border-right:1px solid #14506b; padding:2rem 1.1rem 1.1rem; }
+  .lateral__marca { display:block; padding:.25rem .8rem 1.2rem; text-decoration:none; }
+  .lateral__marca .marca-rally>span { font-size:3.2rem; }
+  .lateral__marca .marca-rally small { font-size:1.45rem; }
+  .lateral__legenda { font-size:.43rem; letter-spacing:.14em; color:#6e9bb6; padding:0 .85rem 1.8rem; }
+  .lateral__grupo { font-size:.51rem; letter-spacing:.15em; font-weight:600; color:#5e8ca9; padding:.7rem .85rem; }
+  .lateral__links { display:flex; flex-direction:column; gap:4px; overflow-y:auto; }
+  .lateral__links>a { display:flex; align-items:center; gap:.75rem; min-height:42px; padding:.7rem .85rem; border-radius:5px; color:#b9d1e3; font-size:.76rem; text-decoration:none; border:1px solid transparent; }
+  .lateral__links .icone-svg { width:16px; height:16px; flex:none; }
+  .lateral__links>a:hover { background:#092439; color:white; }
+  .lateral__links>a.ativo { background:linear-gradient(100deg,#e21e40,#be1331); color:white; border-color:#e72b4b; }
+  .lateral__rodape { margin-top:auto; padding:.9rem 0 0; border-top:1px solid #113249; display:flex; align-items:center; gap:.55rem; }
+  .usuario-inicial { width:32px; height:32px; flex:none; display:grid; place-items:center; border-radius:50%; color:white; background:#174568; font-size:.75rem; }
+  .lateral__rodape>div { min-width:0; flex:1; }
+  .lateral__rodape b { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.65rem; font-weight:500; }
+  .lateral__rodape small { display:block; color:#6e9ab7; font-size:.55rem; margin-top:3px; }
+  .lateral__rodape button { width:30px; height:36px; padding:.4rem; background:transparent; border:0; color:#83b1cf; cursor:pointer; }
+  .topo { position:fixed; top:0; left:var(--lateral-w); right:0; height:var(--topo-h); padding:0 2rem; }
+  .conteudo { margin:0 0 0 var(--lateral-w); max-width:none; padding:calc(var(--topo-h) + 2rem) 2rem 2rem; }
+  .nav { display:none; }
+  .painel-destaque { grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); }
+  .rally-destaque { min-height:260px; }
+  .rally-destaque h2 { font-size:2.65rem; }
+  .tribos-catalogo { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .tribo-card .emblema { width:112px; height:112px; }
+  .toast { bottom:1.5rem; left:calc(50% + var(--lateral-w)/2); }
+  .nova-login { padding:2rem 8%; grid-template-columns:1.2fr 1fr; gap:1rem 4rem; }
+  .login__topo { grid-column:1/-1; align-self:start; position:absolute; top:2rem; left:8%; right:8%; width:auto; }
+  .login__apresentacao { padding:3rem 0 0; }
+  .login__apresentacao .marca-rally>span { font-size:10rem; }
+  .login__apresentacao .marca-rally small { font-size:4.5rem; }
+  .login__apresentacao>p { letter-spacing:.27em; font-size:.7rem; margin-top:2rem; }
+  .login__apresentacao>span:not(.marca-rally) { font-size:.8rem; }
+  .login__sobretitulo { margin-bottom:2rem; font-size:.65rem; }
+  .login__formulario { padding:2.3rem; max-width:420px; }
+  .login__rodape { position:absolute; bottom:2rem; left:0; right:0; }
+}
+@media (min-width:1500px) { .conteudo { padding-left:3rem; padding-right:3rem; } .painel-graficos { grid-template-columns:1.3fr 1fr 1fr; } .painel-graficos .cartao:first-child { grid-column:auto; } }
+@media (max-width:420px) {
+  .topo { padding:.65rem 1rem; }
+  .conteudo { padding:1.25rem .85rem calc(var(--nav-h) + 1.25rem); }
+  .topo__acao { font-size:.65rem; padding:0 .6rem; }
+  .painel-data { display:none; }
+  .pagina-cabecalho { align-items:start; }
+  .rally-destaque h2 { font-size:2.1rem; }
+  .rally-destaque__conteudo { padding:1.2rem; }
+  .rally-destaque__frase { right:5%; font-size:1.5rem; }
+  .kpi--icone { padding:.8rem; gap:.55rem; }
+  .kpi__icone { width:34px; height:34px; }
+  .kpi__icone .icone-svg { width:22px; height:22px; }
+  .kpi--icone>div>span { font-size:.53rem; }
+  .painel-acoes>.btn { flex:1 1 auto; }
+  .cartao { padding:1rem; }
+  .ranking__item { gap:.5rem; padding:.7rem .5rem; }
+  .ranking__pontos { font-size:.9rem; }
+  .tribo-card .emblema { width:82px; height:82px; }
+  .tribo-card h2 { font-size:1.5rem; }
+  .tribo-card__pontos { flex-direction:column; align-items:center; gap:.1rem; }
+  .nova-login { gap:1.4rem; padding:1.25rem; }
+  .login__topo { margin-bottom:.5rem; }
+  .fju-palavra { font-size:2rem; }
+  .login__topo>span { font-size:.45rem; }
+  .login__sobretitulo,.login__linha,.login__apresentacao>span:not(.marca-rally) { display:none; }
+  .login__apresentacao .marca-rally>span { font-size:4.5rem; }
+  .login__apresentacao .marca-rally small { font-size:2rem; }
+  .login__apresentacao>p { font-size:.45rem; margin:.8rem 0 0; }
+  .login__formulario { padding:1.4rem; }
+  .login__formulario h1 { font-size:1.15rem; }
+  .login__formulario>p { margin-bottom:1.25rem; }
+}
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+@media print {
+  :root { color-scheme:light; --texto:#111; --suave:#333; --borda:#ccc; }
+  body { background:white!important; color:#111!important; font-family:'Inter',sans-serif; }
+  body[data-sessao]::before,.lateral,.topo,.nav,.toast,.nao-imprimir,.pular-conteudo { display:none!important; }
+  .conteudo { margin:0!important; padding:0!important; width:100%!important; }
+  .cartao,.kpi { background:white!important; color:#111!important; border:1px solid #ccc!important; }
+  h1,h2,h3,b,p,span,th,td,.suave { color:#111!important; }
+  .almas-tabela th,.almas-tabela tfoot { background:#eee!important; }
+  .almas-tabela th,.almas-tabela td { border-color:#ccc!important; }
+}
+
+.login__apresentacao>.marca-rally { color:#fff; }
+@media (max-width:480px) { input,select,textarea { font-size:16px; } .kpi--icone>div>span { font-size:.61rem; } }

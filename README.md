@@ -39,3 +39,7 @@ Instale as dependências com `npm run setup` e execute `npm test`. Os testes cob
 ## Tribos de cada rally
 
 Em **Mais → Rallies → Novo rally**, marque as tribos participantes. Use **Selecionar todas** ou **Limpar seleção** se desejar. A criação exige pelo menos uma tribo, inclusive pela API (`POST /api/rallies`, campo `tribos`: lista de IDs do catálogo disponível para admin em `GET /api/tribos`). A seleção define as tribos do ranking, painel e relatórios. A cópia de líderes e participantes considera somente as tribos marcadas. Rallies existentes mantêm sua composição ao editar o nome ou as datas.
+
+## Identidade visual
+
+Tema azul-marinho com detalhes em ciano e vermelho, menu lateral no computador, navegação inferior no celular e emblemas das tribos fornecidos pelo usuário. O CSS do tema está em `frontend/public/css/style.css`; veja `docs/IDENTIDADE-VISUAL.md` para fontes, assets e validação. O emblema de Dã não estava no material enviado e usa identificação textual.
