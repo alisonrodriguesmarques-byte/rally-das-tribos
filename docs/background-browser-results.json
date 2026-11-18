@@ -1,0 +1,16 @@
+{
+  "checks": 16,
+  "themes": [
+    "escuro",
+    "claro"
+  ],
+  "widths": [
+    320,
+    390,
+    768,
+    1440
+  ],
+  "assetBytes": 21816,
+  "oldPhotoRequested": false,
+  "errors": []
+}

@@ -47,3 +47,7 @@ Tema azul-marinho com detalhes em ciano e vermelho, menu lateral no computador, 
 ## Tema claro e escuro
 
 Use o botão com sol/lua no cabeçalho ou na tela de login. Sua escolha é salva neste navegador e vale também após recarregar ou trocar de usuário. A impressão do relatório permanece com fundo branco. As cores do gráfico de categorias são explícitas e permanecem visíveis nos dois temas.
+
+## Fundo do login e do painel
+
+O fundo usa o banner reenviado pelo usuário, com o grupo de jovens escolhido e retirada da marca central e do Instagram. O arquivo otimizado é `frontend/public/img/fundo-fju.webp`. A fotografia ilustrativa da reunião foi removida.

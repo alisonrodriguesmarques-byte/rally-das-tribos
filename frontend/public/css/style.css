@@ -150,7 +150,7 @@ tbody tr:hover { background:#0a2236; }
 /* Abertura do painel */
 .painel-destaque { display:grid; gap:1rem; margin-bottom:1rem; }
 .rally-destaque { position:relative; isolation:isolate; overflow:hidden; min-height:255px; border:1px solid #156180; border-radius:7px; background:#082542; display:flex; align-items:center; }
-.rally-destaque::before { content:''; position:absolute; inset:0; z-index:-2; background:linear-gradient(90deg,#031326 5%,#0b3158a3 75%,#08284a55),url('/img/encontro.webp') center 65%/cover; }
+.rally-destaque::before { content:''; position:absolute; inset:0; z-index:-2; background:linear-gradient(90deg,#031326 5%,#0b3158a3 75%,#08284a55),url('/img/fundo-fju.webp') center 65%/cover; }
 .rally-destaque::after { content:''; position:absolute; right:8%; top:-20%; bottom:-30%; width:6%; background:#db193c; transform:skew(-30deg); opacity:.85; z-index:-1; box-shadow:25px 0 #0c73a14d,60px 0 #06203966; }
 .rally-destaque__conteudo { padding:1.6rem; max-width:75%; }
 .rally-destaque .sobretitulo { color:#ff7189; font-size:.67rem; }
@@ -192,7 +192,7 @@ tbody tr:hover { background:#0a2236; }
 .grafico { margin-top:1rem; height:240px; }
 /* Login: a fotografia é ilustrativa e permanece somente no fundo. */
 .nova-login { position:relative; isolation:isolate; min-height:100svh; padding:2rem 1.5rem; background:#04182b; display:grid; grid-template-columns:1fr; align-content:center; gap:2rem; }
-.nova-login::before { content:''; position:absolute; inset:0; z-index:-2; background:linear-gradient(115deg,#001021c9,#052b4bd9 50%,#001021f5),url('/img/encontro.webp') center/cover; }
+.nova-login::before { content:''; position:absolute; inset:0; z-index:-2; background:linear-gradient(115deg,#001021c9,#052b4bd9 50%,#001021f5),url('/img/fundo-fju.webp') center/cover; }
 .nova-login::after { content:''; position:absolute; inset:0; z-index:-1; pointer-events:none; background:linear-gradient(128deg,transparent 19%,#bb15324a 19%,#bb15324a 23%,transparent 23%,transparent 66%,#08467955 66%,#08467955 71%,transparent 71%); }
 .login__topo { display:flex; justify-content:space-between; align-items:center; gap:1rem; width:100%; }
 .login__topo>span { font-size:.56rem; letter-spacing:.16em; color:#afcce0; }
@@ -411,7 +411,7 @@ body[data-sessao="publica"] .tema-publico { display:inline-flex; }
 [data-tema="claro"] .rally-destaque .sobretitulo { color:#ff8fa3; }
 [data-tema="claro"] .rally-destaque .btn { background:linear-gradient(100deg,#e51e3e,#cb1632); color:#fff; border-color:#e52644; }
 [data-tema="claro"] .nova-login { background:#e8f0f7; }
-[data-tema="claro"] .nova-login::before { background:linear-gradient(115deg,#071d3466,#103c5c55 50%,#ecf5ffc9),url('/img/encontro.webp') center/cover; }
+[data-tema="claro"] .nova-login::before { background:linear-gradient(115deg,#071d3466,#103c5c55 50%,#ecf5ffc9),url('/img/fundo-fju.webp') center/cover; }
 [data-tema="claro"] .login__formulario { background:#ffffffed; border-color:#accddd; }
 [data-tema="claro"] .login__formulario h1 { color:#15384f; }
 [data-tema="claro"] .login__formulario>p,[data-tema="claro"] .login__formulario .campo>span:first-child { color:#40677f; }
@@ -421,3 +421,21 @@ body[data-sessao="publica"] .tema-publico { display:inline-flex; }
 [data-tema="claro"] .login__base span { color:#173b53; }
 [data-tema="claro"] .senha-campo button { color:#1d728f; }
 @media print { .tema-botao,.topo__acoes { display:none!important; } }
+
+/* Banner fornecido pelo usuário, sem marca central e Instagram. */
+.rally-destaque::before {
+  background-image:linear-gradient(90deg,#031326b8,#03132638),url('/img/fundo-fju.webp');
+  background-position:center,center; background-size:cover,cover; background-repeat:no-repeat;
+}
+.nova-login::before {
+  background-image:linear-gradient(115deg,#00102188,#052b4b55 50%,#001021aa),url('/img/fundo-fju.webp');
+  background-position:center,center; background-size:cover,100% auto; background-repeat:no-repeat;
+}
+.rally-destaque::after,.nova-login::after { display:none; }
+[data-tema="claro"] .nova-login::before {
+  background-image:linear-gradient(115deg,#071d3455,#103c5c33 50%,#ecf5ff99),url('/img/fundo-fju.webp');
+  background-position:center,center; background-size:cover,100% auto; background-repeat:no-repeat;
+}
+@media (max-width:999px) {
+  .nova-login::before,[data-tema="claro"] .nova-login::before { background-size:cover,auto 80%; }
+}

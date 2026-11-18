@@ -17,7 +17,7 @@ Bebas Neue para títulos e destaques, Montserrat para identidade e chamadas, Int
 
 Os 12 emblemas enviados incluem Rúben, Simeão, Issacar, Naftali, Levi, Gade, Zebulom, Efraim, Manassés, Benjamim, Aser e Judá. O ZIP original não continha Dã; o emblema de Dã foi criado posteriormente a pedido do usuário, por geração digital com referência ao estilo do medalhão de Judá. Usa uma serpente dourada e o texto DÃ. Não é um arquivo original enviado pelo usuário.
 
-O fundo fotográfico é ilustrativo e não representa um encontro real da FJU. Fonte: Unsplash, fotografia `photo-1540575467063-178a50c2df87`, https://images.unsplash.com/photo-1540575467063-178a50c2df87. Licença: https://unsplash.com/license. O tratamento azul e as faixas diagonais são aplicados com CSS.
+O fundo agora é uma edição do banner enviado pelo usuário, com o grupo de jovens dessa imagem. Foram retirados a marca branca central e o Instagram inferior, mantendo a linguagem azul e vinho. O arquivo é `frontend/public/img/fundo-fju.webp`, otimizado para web (aproximadamente 22 KB). A fotografia ilustrativa de uma reunião usada anteriormente foi removida do projeto.
 
 ## Dispositivos com menos recursos
 
@@ -37,4 +37,4 @@ O fundo fotográfico é ilustrativo e não representa um encontro real da FJU. F
 
 Botões de tema estão no cabeçalho e na tela de login. A preferência claro/escuro é salva no localStorage do navegador e aplicada antes do CSS para evitar flashes ao abrir. Textos e grades dos gráficos também mudam de cor. O gráfico de categorias usa uma paleta explícita; as animações dos gráficos foram desativadas para evitar estados incompletos na troca de tema e reduzir trabalho em dispositivos simples. O botão Trocar rally usa uma seta SVG em vez de um caractere de fonte.
 
-A substituição da fotografia de fundo está pendente do envio do banner original em PNG/JPG. O usuário pediu apenas a remoção da marca FJU e do Instagram, preservando o restante da fotografia; a versão recriada por geração de imagem não é usada no projeto.
+A substituição da fotografia foi concluída após o usuário reenviar o banner escolhido. A edição usa essa referência e retira a marca central e o Instagram. As faixas extras do CSS foram desativadas, pois o próprio banner já contém diagonais.
