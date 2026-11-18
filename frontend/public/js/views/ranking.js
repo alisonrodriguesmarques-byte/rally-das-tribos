@@ -1,9 +1,10 @@
 import { emblema } from '../emblemas.js';
 import { icone } from '../icones.js';
 import { api } from '../api.js';
-import { rid, ehAdmin } from '../estado.js';
+import { rid, ehAdmin, estado } from '../estado.js';
 import { esc, fmtPontos, definirTitulo, grafico, limparGraficos, vazio, itemRanking, semRally, on } from '../ui.js';
  
+const CORES_CATEGORIAS = ['#00b8d9','#ed4763','#f2b84b','#4cb6ac','#9274df','#ed8c47','#518fe4','#cf68b3','#8cba51','#23aa90','#bf8b59','#5f75c9','#e87788','#62a3b1','#7a9c42','#9b6cc2'];
 const ABAS = [['classificacao', 'Classificação'], ['evolucao', 'Evolução'], ['categorias', 'Por categoria']];
  
 export default async function ranking(el, _p, query) {
@@ -75,7 +76,7 @@ async function categorias(corpo) {
       <div class="cartao"><ul class="lista">${dados.map((c) => `<li><span class="cresce">${esc(c.categoria)}</span><span class="pontos">${fmtPontos(c.pontos)}</span></li>`).join('')}</ul></div>`;
     grafico(alvo.querySelector('#g'), {
       type: 'doughnut',
-      data: { labels: dados.map((c) => c.categoria), datasets: [{ data: dados.map((c) => c.pontos) }] },
+      data: { labels: dados.map((c) => c.categoria), datasets: [{ data: dados.map((c) => c.pontos), backgroundColor: dados.map((c, i) => { const indice = estado.categorias.findIndex((x) => x.id === c.categoria_id || x.nome === c.categoria); return CORES_CATEGORIAS[(indice >= 0 ? indice : estado.categorias.length + i) % CORES_CATEGORIAS.length]; }), borderColor: '#ffffff', borderWidth: 2, hoverOffset: 6 }] },
     });
   };
   corpo.querySelector('#sel').addEventListener('change', desenhar);

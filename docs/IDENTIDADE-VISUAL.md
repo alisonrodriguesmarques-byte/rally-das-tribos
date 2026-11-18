@@ -15,7 +15,7 @@ O tema segue a composição da referência fornecida: azul-marinho, painéis esc
 
 Bebas Neue para títulos e destaques, Montserrat para identidade e chamadas, Inter para textos e controles. As fontes são servidas localmente, sem dependência do Google Fonts em tempo de uso. Licenças em `frontend/public/fonts/*-OFL.txt`.
 
-Os 12 emblemas enviados incluem Rúben, Simeão, Issacar, Naftali, Levi, Gade, Zebulom, Efraim, Manassés, Benjamim, Aser e Judá. O ZIP não contém Dã; a interface usa uma identificação textual para essa tribo. Não foi inventado um novo emblema.
+Os 12 emblemas enviados incluem Rúben, Simeão, Issacar, Naftali, Levi, Gade, Zebulom, Efraim, Manassés, Benjamim, Aser e Judá. O ZIP original não continha Dã; o emblema de Dã foi criado posteriormente a pedido do usuário, por geração digital com referência ao estilo do medalhão de Judá. Usa uma serpente dourada e o texto DÃ. Não é um arquivo original enviado pelo usuário.
 
 O fundo fotográfico é ilustrativo e não representa um encontro real da FJU. Fonte: Unsplash, fotografia `photo-1540575467063-178a50c2df87`, https://images.unsplash.com/photo-1540575467063-178a50c2df87. Licença: https://unsplash.com/license. O tratamento azul e as faixas diagonais são aplicados com CSS.
 
@@ -32,3 +32,9 @@ O fundo fotográfico é ilustrativo e não representa um encontro real da FJU. F
 ## Validação
 
 26 testes do backend aprovados. A verificação automatizada no Chromium percorreu 124 verificações de rotas e fluxos, nas larguras de 320, 390, 768, 1024 e 1440 pixels: sem erros de JavaScript, arquivos faltantes ou rolagem horizontal da página. Não foram realizadas requisições externas durante o uso da aplicação. Também foram verificados pesquisa de tribos, seleção de participantes no novo rally, envio do relatório semanal e impressão clara. Os testes simulam tamanhos de tela; não equivalem a uma medição em aparelhos físicos de pouca memória.
+
+## Temas e correção dos gráficos
+
+Botões de tema estão no cabeçalho e na tela de login. A preferência claro/escuro é salva no localStorage do navegador e aplicada antes do CSS para evitar flashes ao abrir. Textos e grades dos gráficos também mudam de cor. O gráfico de categorias usa uma paleta explícita; as animações dos gráficos foram desativadas para evitar estados incompletos na troca de tema e reduzir trabalho em dispositivos simples. O botão Trocar rally usa uma seta SVG em vez de um caractere de fonte.
+
+A substituição da fotografia de fundo está pendente do envio do banner original em PNG/JPG. O usuário pediu apenas a remoção da marca FJU e do Instagram, preservando o restante da fotografia; a versão recriada por geração de imagem não é usada no projeto.

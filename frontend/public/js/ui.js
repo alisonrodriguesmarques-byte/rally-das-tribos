@@ -220,12 +220,30 @@ function carregarChart() {
   if (window.Chart) return Promise.resolve();
   if (!carregamentoChart) carregamentoChart = new Promise((resolve, reject) => {
     const script = document.createElement('script'); script.src = '/vendor/chart.umd.js'; script.async = true;
-    script.onload = () => { window.Chart.defaults.color = '#9bb5c9'; window.Chart.defaults.borderColor = '#123149'; window.Chart.defaults.font.family = 'Inter, sans-serif'; resolve(); };
+    script.onload = () => { aplicarTemaGraficos(); window.Chart.defaults.font.family = 'Inter, sans-serif'; resolve(); };
     script.onerror = () => { carregamentoChart = null; script.remove(); reject(new Error('Não foi possível carregar os gráficos. Recarregue a página.')); };
     document.head.append(script);
   });
   return carregamentoChart;
 }
+function aplicarTemaGraficos() {
+  if (!window.Chart) return;
+  const claro = document.documentElement.dataset.tema === 'claro';
+  const cor = claro ? '#36556c' : '#9bb5c9';
+  const grade = claro ? '#d6e2ec' : '#123149';
+  window.Chart.defaults.color = cor;
+  window.Chart.defaults.borderColor = grade;
+  for (const c of graficos) {
+    if (c.options.plugins?.legend) c.options.plugins.legend.labels.color = cor;
+    for (const escala of Object.values(c.options.scales || {})) {
+      if (escala.ticks) escala.ticks.color = cor;
+      if (escala.grid) escala.grid.color = grade;
+      if (escala.title) escala.title.color = cor;
+    }
+    c.update('none');
+  }
+}
+window.addEventListener('tema:alterado', aplicarTemaGraficos);
 export async function grafico(canvas, config) {
   if (!canvas) return null;
   await carregarChart();
@@ -234,6 +252,7 @@ export async function grafico(canvas, config) {
     ...config,
     options: {
       responsive: true,
+      animation: false,
       maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
       ...config.options,

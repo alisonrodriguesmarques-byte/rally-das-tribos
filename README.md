@@ -42,4 +42,8 @@ Em **Mais → Rallies → Novo rally**, marque as tribos participantes. Use **Se
 
 ## Identidade visual
 
-Tema azul-marinho com detalhes em ciano e vermelho, menu lateral no computador, navegação inferior no celular e emblemas das tribos fornecidos pelo usuário. O CSS do tema está em `frontend/public/css/style.css`; veja `docs/IDENTIDADE-VISUAL.md` para fontes, assets e validação. O emblema de Dã não estava no material enviado e usa identificação textual.
+Tema azul-marinho com detalhes em ciano e vermelho, menu lateral no computador, navegação inferior no celular e emblemas das tribos fornecidos pelo usuário. O CSS do tema está em `frontend/public/css/style.css`; veja `docs/IDENTIDADE-VISUAL.md` para fontes, assets e validação. O emblema de Dã foi acrescentado posteriormente, no mesmo estilo dos demais.
+
+## Tema claro e escuro
+
+Use o botão com sol/lua no cabeçalho ou na tela de login. Sua escolha é salva neste navegador e vale também após recarregar ou trocar de usuário. A impressão do relatório permanece com fundo branco. As cores do gráfico de categorias são explícitas e permanecem visíveis nos dois temas.

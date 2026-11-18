@@ -1,0 +1,22 @@
+{
+  "checks": 80,
+  "themes": [
+    "claro",
+    "escuro"
+  ],
+  "widths": [
+    320,
+    390,
+    768,
+    1440
+  ],
+  "pieColors": 11,
+  "uniqueColors": 11,
+  "persistedAfterReload": true,
+  "legendUpdated": true,
+  "daImageLoaded": true,
+  "vectorChevron": true,
+  "memberPrivacy": true,
+  "printWhite": true,
+  "errors": []
+}

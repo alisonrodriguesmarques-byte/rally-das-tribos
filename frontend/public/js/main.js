@@ -1,3 +1,4 @@
+import { iniciarTema } from './tema.js';
 import { marca } from './marca.js';
 import { icone } from './icones.js';
 import { api } from './api.js';
@@ -140,4 +141,5 @@ document.getElementById('btn-voltar').addEventListener('click', () => {
 document.getElementById('btn-rally').addEventListener('click', escolherRally);
 window.addEventListener('hashchange', renderizar);
 window.addEventListener('rally:recarregar', renderizar);
+iniciarTema();
 renderizar();

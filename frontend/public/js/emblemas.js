@@ -1,4 +1,4 @@
-const arquivos = new Set(['ruben','simeao','issacar','naftali','levi','gade','zebulom','efraim','manasses','benjamim','aser','juda']);
+const arquivos = new Set(['ruben','simeao','issacar','naftali','levi','gade','zebulom','efraim','manasses','benjamim','aser','juda','da']);
 const seguro = (s) => String(s || '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function emblema(tribo, classe = '') {
   const nome = typeof tribo === 'string' ? tribo : tribo?.nome || tribo?.tribo || '';
