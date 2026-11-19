@@ -1,3 +1,10 @@
+// Testes comuns nunca devem acessar a conexão de produção.
+if (process.env.RALLY_TEST_POSTGRES !== '1') {
+  process.env.DB_CLIENT = 'better-sqlite3';
+  delete process.env.DATABASE_URL;
+} else if (!/^teste_[a-f0-9]+$/.test(process.env.DB_SCHEMA || '') || !['localhost','127.0.0.1','[::1]'].includes(new URL(process.env.DATABASE_URL).hostname)) {
+  throw new Error('PostgreSQL de teste exige host local e schema descartável.');
+}
 process.env.DB_FILE = ':memory:';
 const { randomBytes } = require('node:crypto');
 process.env.ADMIN_PASSWORD = randomBytes(20).toString('hex');
@@ -94,7 +101,7 @@ test('envio duplicado e edição de enviado são bloqueados sem duplicar pontos'
   const antes = await db('lancamentos').count({ n: '*' }).first();
   assert.equal((await cabeca.post(root()).send({ semana_inicio: inicio, acao: 'enviar', dias: dias() })).status, 409);
   assert.equal((await auxiliar.post(root()).send({ semana_inicio: inicio, acao: 'rascunho', dias: dias() })).status, 409);
-  assert.equal((await db('relatorios_almas').count({ n: '*' }).first()).n, 1);
+  assert.equal(Number((await db('relatorios_almas').count({ n: '*' }).first()).n), 1);
   assert.deepEqual(await db('lancamentos').count({ n: '*' }).first(), antes);
 });
 test('admin exporta o consolidado e líder não pode exportar as outras tribos', async () => {

@@ -8,7 +8,7 @@ const path = require('node:path');
 
 function iniciarSem(chave) {
   const pasta = mkdtempSync(path.join(tmpdir(), 'rally-config-'));
-  const env = { ...process.env, DB_FILE: path.join(pasta, 'teste.sqlite'), JWT_SECRET: randomBytes(32).toString('hex'), ADMIN_PASSWORD: randomBytes(24).toString('hex') };
+  const env = { ...process.env, DB_CLIENT: 'better-sqlite3', DATABASE_URL: '', DB_FILE: path.join(pasta, 'teste.sqlite'), JWT_SECRET: randomBytes(32).toString('hex'), ADMIN_PASSWORD: randomBytes(24).toString('hex') };
   delete env[chave];
   try {
     return spawnSync(process.execPath, [path.resolve(__dirname, '../src/server.js')], { env, encoding: 'utf8', timeout: 10000 });

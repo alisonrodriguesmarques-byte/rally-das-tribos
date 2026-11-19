@@ -4,6 +4,7 @@ const { criarApp } = require('./app');
  
 async function iniciar() {
   if (!config.jwtSecret) throw new Error('Defina JWT_SECRET antes de iniciar o servidor.');
+  if (config.banco.cliente === 'pg') await db.raw('CREATE SCHEMA IF NOT EXISTS ??', [config.banco.schema]);
   await db.migrate.latest();
   await db.seed.run();
   const app = criarApp();

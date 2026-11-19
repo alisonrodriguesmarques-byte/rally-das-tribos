@@ -9,7 +9,8 @@ function montarConfig() {
   };
  
   if (config.banco.cliente === 'pg') {
-    return { ...comum, client: 'pg', connection: config.banco.url, pool: { min: 1, max: 10 } };
+    const { postgresConfig } = require('./postgres-config');
+    return { ...comum, ...postgresConfig(config.banco) };
   }
  
   if (config.banco.arquivo !== ':memory:') {

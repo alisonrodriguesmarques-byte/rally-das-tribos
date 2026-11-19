@@ -1,3 +1,10 @@
+// Testes comuns nunca devem acessar a conexão de produção.
+if (process.env.RALLY_TEST_POSTGRES !== '1') {
+  process.env.DB_CLIENT = 'better-sqlite3';
+  delete process.env.DATABASE_URL;
+} else if (!/^teste_[a-f0-9]+$/.test(process.env.DB_SCHEMA || '') || !['localhost','127.0.0.1','[::1]'].includes(new URL(process.env.DATABASE_URL).hostname)) {
+  throw new Error('PostgreSQL de teste exige host local e schema descartável.');
+}
 process.env.DB_FILE = ':memory:';
 const { randomBytes } = require('node:crypto');
 const senhaAdmin = randomBytes(24).toString('hex');

@@ -1,0 +1,17 @@
+{
+  "sqliteTests": 31,
+  "postgresSuiteTests": 24,
+  "postgresVersion": "18.6",
+  "import": {
+    "fixtureRows": 26,
+    "destinationNonemptyRejected": true,
+    "sequenceVerified": true
+  },
+  "backup": {
+    "pgDumpVersion": "18.7",
+    "tlsCertificateVerified": true,
+    "encryption": "GnuPG AES256",
+    "restoredPeople": 2
+  },
+  "cloudConnection": "Supabase e Render aguardam configuração do usuário; sem credenciais nesta entrega"
+}

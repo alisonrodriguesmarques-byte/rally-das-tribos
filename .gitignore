@@ -9,3 +9,9 @@ backend/data/
 *.sqlite3-shm
 .env.*
 !.env.example
+
+# Backups contêm dados privados, mesmo criptografados.
+backups/
+*.dump
+*.dump.gpg
+*.sql.gz

@@ -1,3 +1,10 @@
+// Testes comuns nunca devem acessar a conexão de produção.
+if (process.env.RALLY_TEST_POSTGRES !== '1') {
+  process.env.DB_CLIENT = 'better-sqlite3';
+  delete process.env.DATABASE_URL;
+} else if (!/^teste_[a-f0-9]+$/.test(process.env.DB_SCHEMA || '') || !['localhost','127.0.0.1','[::1]'].includes(new URL(process.env.DATABASE_URL).hostname)) {
+  throw new Error('PostgreSQL de teste exige host local e schema descartável.');
+}
 process.env.DB_FILE = ':memory:';
 const { randomBytes } = require('node:crypto');
 process.env.ADMIN_PASSWORD = randomBytes(24).toString('hex');
@@ -37,7 +44,7 @@ test('criação rejeita ausência, seleção vazia, repetição, tipos inválido
     const r=await admin.post('/api/rallies').send(body);
     assert.equal(r.status,400,JSON.stringify(tribos));
   }
-  assert.equal((await db('rallies').count({n:'*'}).first()).n,1);
+  assert.equal(Number((await db('rallies').count({n:'*'}).first()).n),1);
   assert.equal((await db('rallies').where({id:anterior.id}).first()).status,'ativo');
 });
 test('rally com duas tribos só inclui as selecionadas e copia seus vínculos',async()=>{

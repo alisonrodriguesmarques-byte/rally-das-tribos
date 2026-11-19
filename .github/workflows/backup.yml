@@ -1,0 +1,32 @@
+name: Backup criptografado PostgreSQL
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: backup-postgres
+  cancel-in-progress: false
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    container: postgres:18-bookworm
+    timeout-minutes: 15
+    env:
+      DATABASE_BACKUP_URL: ${{ secrets.DATABASE_BACKUP_URL }}
+      BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+      DATABASE_CA_CERT: ${{ secrets.DATABASE_CA_CERT }}
+      DB_SCHEMA: rally
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar criptografia
+        run: apt-get update && apt-get install -y --no-install-recommends gnupg ca-certificates
+      - name: Criar backup
+        run: bash scripts/backup-postgres.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rally-backup-${{ github.run_id }}
+          path: backups/*.dump.gpg
+          retention-days: 14
+          if-no-files-found: error

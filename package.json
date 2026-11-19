@@ -1,5 +1,13 @@
 {
-  "name": "rally-das-tribos", "private": true,
-  "scripts": { "start": "npm --prefix backend start", "setup": "npm --prefix backend ci", "test": "npm --prefix backend test" },
-  "engines": { "node": "24.x" }
+  "name": "rally-das-tribos",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix backend start",
+    "setup": "npm --prefix backend ci",
+    "test": "npm --prefix backend test",
+    "test:postgres": "node scripts/test-postgres.cjs"
+  },
+  "engines": {
+    "node": "24.x"
+  }
 }

@@ -16,13 +16,14 @@
     "node": "24.x"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "knex": "^3.1.0",
-    "better-sqlite3": "^12.4.1",
     "bcryptjs": "^3.0.2",
-    "jsonwebtoken": "^9.0.2",
+    "better-sqlite3": "^12.4.1",
+    "chart.js": "^4.5.1",
     "cookie-parser": "^1.4.7",
-    "chart.js": "^4.5.1"
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "knex": "^3.1.0",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
     "supertest": "^7.1.4"

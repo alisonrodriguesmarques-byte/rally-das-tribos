@@ -51,3 +51,7 @@ Use o botão com sol/lua no cabeçalho ou na tela de login. Sua escolha é salva
 ## Fundo do login e do painel
 
 O fundo usa o banner reenviado pelo usuário, com o grupo de jovens escolhido e retirada da marca central e do Instagram. O arquivo otimizado é `frontend/public/img/fundo-fju.webp`. A fotografia ilustrativa da reunião foi removida.
+
+## Hospedagem com dados persistentes
+
+Para Render + PostgreSQL no Supabase, veja [o guia completo](docs/SUPABASE-RENDER.md): conexão TLS, configuração do Render sem disco, importação do SQLite e backup diário criptografado com recuperação. O backup só começa a funcionar após configurar os secrets do GitHub e verificar a primeira execução.
