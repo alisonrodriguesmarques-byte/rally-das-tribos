@@ -20,6 +20,7 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm --prefix backend ci
+      - run: npm run build
       - run: npm test
       - run: npm run test:postgres
         env:

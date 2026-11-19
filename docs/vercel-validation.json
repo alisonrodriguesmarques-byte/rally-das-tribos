@@ -1,0 +1,15 @@
+{
+  "tests": 33,
+  "failures": 0,
+  "staticBuild": true,
+  "vercelConfigSchemaValidated": true,
+  "postgresFunction": [
+    "login",
+    "session",
+    "catalog",
+    "404",
+    "pool=1",
+    "no migrations or seeds at initialization"
+  ],
+  "liveVercelDeployment": "aguarda configuração da conta e variáveis pelo usuário"
+}

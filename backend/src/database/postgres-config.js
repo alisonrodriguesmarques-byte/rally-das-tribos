@@ -20,7 +20,7 @@ function postgresConfig(banco) {
     connection: { connectionString: url.toString(), ssl },
     searchPath: [banco.schema],
     migrations: { directory: require('path').join(__dirname, 'migrations'), schemaName: banco.schema },
-    pool: { min: 0, max: 5 },
+    pool: { min: 0, max: process.env.VERCEL ? 1 : 5 },
     acquireConnectionTimeout: 30000,
   };
 }

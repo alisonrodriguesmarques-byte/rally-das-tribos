@@ -55,3 +55,7 @@ O fundo usa o banner reenviado pelo usuário, com o grupo de jovens escolhido e 
 ## Hospedagem com dados persistentes
 
 Para Render + PostgreSQL no Supabase, veja [o guia completo](docs/SUPABASE-RENDER.md): conexão TLS, configuração do Render sem disco, importação do SQLite e backup diário criptografado com recuperação. O backup só começa a funcionar após configurar os secrets do GitHub e verificar a primeira execução.
+
+## Vercel + Supabase
+
+Para a hospedagem escolhida, siga [VERCEL-SUPABASE.md](docs/VERCEL-SUPABASE.md). Frontend estático, API serverless, banco externo obrigatório e preparação de migrações separada. O suporte local e ao Render continua disponível.

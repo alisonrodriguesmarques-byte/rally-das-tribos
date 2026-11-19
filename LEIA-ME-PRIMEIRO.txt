@@ -54,3 +54,6 @@ RENDER + SUPABASE E BACKUP
 Leia docs/SUPABASE-RENDER.md. Configure DATABASE_URL apenas no Render.
 Não precisa de disco persistente no Render ao usar PostgreSQL externo.
 Backups diários exigem os secrets do GitHub e uma primeira execução verificada.
+
+VERCEL + SUPABASE
+Para publicar na Vercel, siga docs/VERCEL-SUPABASE.md. Não usa INICIAR.bat na nuvem.

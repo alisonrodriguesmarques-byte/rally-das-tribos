@@ -5,7 +5,9 @@
     "start": "npm --prefix backend start",
     "setup": "npm --prefix backend ci",
     "test": "npm --prefix backend test",
-    "test:postgres": "node scripts/test-postgres.cjs"
+    "test:postgres": "node scripts/test-postgres.cjs",
+    "build": "node scripts/build-vercel.cjs",
+    "db:prepare": "node --env-file-if-exists=backend/.env scripts/preparar-banco.cjs"
   },
   "engines": {
     "node": "24.x"

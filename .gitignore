@@ -15,3 +15,6 @@ backups/
 *.dump
 *.dump.gpg
 *.sql.gz
+
+dist/
+.vercel/
