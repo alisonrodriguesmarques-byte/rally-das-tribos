@@ -1,0 +1,30 @@
+RENDER — campos do serviço
+Runtime: Node
+Branch: main
+Root Directory: deixe vazio
+Build Command: npm --prefix backend ci --omit=dev
+Start Command: npm start
+
+RENDER — Environment Variables (NÃO cole isto no SQL Editor)
+NODE_VERSION=24
+NODE_ENV=production
+DB_CLIENT=pg
+DB_SCHEMA=rally
+DATABASE_URL=COLE_A_CONEXAO_POSTGRESQL_SESSION_POOLER_DO_SUPABASE
+JWT_SECRET=GERE_UM_SEGREDO_ALEATORIO_LONGO
+ADMIN_EMAIL=SEU_EMAIL_DE_ADMINISTRADOR
+ADMIN_PASSWORD=SUA_SENHA_DE_ADMINISTRADOR
+
+Não coloque PORT; ela é fornecida pelo Render.
+Remova DB_FILE e qualquer DB_SSL=false.
+Use Session pooler, porta 5432, em Connect no Supabase.
+DATABASE_URL não é anon key nem service_role key.
+Se exigido pelo certificado oficial, configure também DATABASE_CA_CERT (PEM).
+
+Depois de criar o administrador pelo SQL 02, o login já existe: ADMIN_PASSWORD
+no Render não muda a senha de uma conta existente. Use no site a senha definida
+no SQL 02. Se importar dados existentes, use as contas importadas.
+
+Para gerar JWT_SECRET no terminal do computador:
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+Não use os textos de exemplo acima como senha, segredo ou conexão real.

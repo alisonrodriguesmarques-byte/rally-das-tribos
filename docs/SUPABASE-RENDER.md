@@ -97,3 +97,7 @@ pg_restore --dbname="$PGDATABASE" --exit-on-error --no-owner --no-acl rally.dump
 ## Verificação do código
 
 `npm test` cobre SQLite e configuração TLS; `TEST_DATABASE_URL=... npm run test:postgres` executa os fluxos da API em schemas descartáveis de PostgreSQL local. CI em `.github/workflows/test.yml` executa ambos. O ambiente real Supabase/Render exige as variáveis e verificação final acima; essas credenciais não fazem parte do projeto.
+
+## Alternativa: criar as tabelas pelo SQL Editor
+
+Para um banco novo, o pacote [sql/LEIA-ME.md](sql/LEIA-ME.md) contém o SQL completo de instalação, criação do administrador e os campos do Render. A inicialização automática do app também continua funcionando; escolha apenas um procedimento para instalar. Para importar SQLite existente, siga a seção de importação acima antes de criar usuários no destino.
