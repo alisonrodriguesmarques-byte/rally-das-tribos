@@ -8,12 +8,14 @@ async function iniciar() {
   await db.migrate.latest();
   await db.seed.run();
   const app = criarApp();
-  app.listen(config.porta, '0.0.0.0', () => {
+  const stopEmails = require('./services/emailWorker').iniciarWorker();
+  const server = app.listen(config.porta, '0.0.0.0', () => {
     console.log(`Rally das Tribos rodando em http://localhost:${config.porta}`);
   });
+  process.once('SIGTERM', () => { stopEmails(); server.close(() => { db.destroy().finally(() => process.exit(0)); }); });
 }
  
 iniciar().catch((err) => {
-  console.error('Falha ao iniciar:', err);
+  console.error('Falha ao iniciar:', {codigo:err.code || 'STARTUP_ERROR', mensagem: /Defina (JWT_SECRET|ADMIN_PASSWORD)/.test(err.message)?err.message:'Confira conexão, migrações e variáveis do serviço.'});
   process.exit(1);
 });

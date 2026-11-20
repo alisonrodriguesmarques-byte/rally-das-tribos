@@ -5,6 +5,7 @@ function listar({ busca, ativo, rallyId, rallyTriboId, semTribo } = {}, trx = db
   const q = trx('pessoas as p')
     .leftJoin('usuarios as u', 'u.pessoa_id', 'p.id')
     .select('p.*', 'u.email', 'u.papel')
+    .whereNull('p.excluido_em')
     .orderBy('p.nome_completo');
  
   if (rallyId) {
@@ -28,7 +29,8 @@ function listar({ busca, ativo, rallyId, rallyTriboId, semTribo } = {}, trx = db
   return q;
 }
  
-const obter = (id, trx = db) => trx('pessoas').where({ id }).first();
+const obter = (id, trx = db) => trx('pessoas').where({ id }).whereNull('excluido_em').first();
+const obterIncluindoExcluidas = (id, trx = db) => trx('pessoas').where({ id }).first();
 const criar = (dados, trx = db) => inserir(trx, 'pessoas', dados);
 const atualizar = (id, dados, trx = db) => trx('pessoas').where({ id }).update(dados);
  
@@ -51,4 +53,4 @@ function liderancas(pessoaId, trx = db) {
     .where((w) => w.where('rt.cabeca_pessoa_id', pessoaId).orWhere('rt.auxiliar_pessoa_id', pessoaId));
 }
  
-module.exports = { listar, obter, criar, atualizar, historicoTribos, liderancas };
+module.exports = { listar, obter, obterIncluindoExcluidas, criar, atualizar, historicoTribos, liderancas };

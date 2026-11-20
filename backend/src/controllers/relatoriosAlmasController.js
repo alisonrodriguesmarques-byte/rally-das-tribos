@@ -10,7 +10,7 @@ module.exports = {
     const id = idParam(req); const inicio = req.query.semana_inicio;
     const dados = await service.listar(id, await contexto(req, id), inicio);
     if (req.query.formato === 'csv') {
-      const csv = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const csv = require('../utils/csv').celulaCsv;
       const linhas = [['Tribo', 'Responsável', 'Semana inicial', 'Semana final', 'Reunião', 'Novas', 'Afastadas', 'Total']];
       for (const r of dados.relatorios.filter((x) => x.status !== 'rascunho')) for (const d of r.dias) linhas.push([r.tribo_nome, r.responsavel_nome, r.semana_inicio, r.semana_fim, d.dia, d.novas, d.afastadas, d.novas + d.afastadas]);
       return res.type('text/csv').attachment(`almas-${inicio}.csv`).send('\ufeff' + linhas.map((l) => l.map(csv).join(';')).join('\r\n'));

@@ -22,23 +22,27 @@ const form = (r = {}, novo = false, catalogo = []) => `<form>
   <p class="suave pequeno">Somente as tribos marcadas serão incluídas. Ativar este rally encerra o rally ativo anterior (o histórico fica guardado).</p>` : ''}
   <button class="btn btn--primario btn--bloco" type="submit">${novo ? 'Criar rally' : 'Salvar'}</button></form>`;
  
-export default async function rallies(el) {
+export default async function rallies(el, _params, query = {}) {
   definirTitulo('Rallies');
-  const lista = await api('GET', '/rallies');
+  const incluirArquivados = query.arquivados === '1';
+  const lista = await api('GET', `/rallies${incluirArquivados ? '?arquivados=1' : ''}`);
   el.innerHTML = `<button class="btn btn--primario btn--bloco" id="novo" style="margin-bottom:.85rem">+ Novo rally</button>
+    <label class="check" style="margin-bottom:.85rem"><input type="checkbox" id="incluir-arquivados"${incluirArquivados ? ' checked' : ''}> Mostrar também os rallies arquivados</label>
     ${lista.length ? lista.map((r) => `<div class="cartao">
       <div class="linha linha--entre"><div><h2 style="margin:0">${esc(r.nome)}</h2><div class="suave">${fmtData(r.data_inicio)} a ${fmtData(r.data_fim)}</div></div>
-      <div>${etiqueta(r.status)}${estado.rally?.id === r.id ? ' <span class="etiqueta etiqueta--azul">em uso</span>' : ''}</div></div>
+      <div>${etiqueta(r.status)}${r.arquivado_em ? ' <span class="etiqueta">arquivado</span>' : ''}${estado.rally?.id === r.id ? ' <span class="etiqueta etiqueta--azul">em uso</span>' : ''}</div></div>
       <div class="botoes" style="margin-top:.7rem">
-        ${estado.rally?.id !== r.id ? `<button class="btn btn--peq" data-usar="${r.id}">Usar este</button>` : ''}
-        ${r.status !== 'encerrado' ? `<button class="btn btn--peq" data-editar="${r.id}">Editar</button>` : ''}
-        ${r.status === 'planejado' ? `<button class="btn btn--peq btn--verde" data-status="ativo" data-id="${r.id}">Ativar</button>` : ''}
-        ${r.status === 'ativo' ? `<button class="btn btn--peq btn--perigo" data-status="encerrado" data-id="${r.id}">Encerrar</button>` : ''}
-        ${r.status === 'encerrado' ? `<button class="btn btn--peq" data-status="ativo" data-id="${r.id}">Reabrir</button>` : ''}
+        ${estado.rally?.id !== r.id ? `<button class="btn btn--peq" data-usar="${r.id}">${r.arquivado_em ? 'Consultar' : 'Usar este'}</button>` : ''}
+        ${r.status !== 'encerrado' && !r.arquivado_em ? `<button class="btn btn--peq" data-editar="${r.id}">Editar</button>` : ''}
+        ${r.status === 'planejado' && !r.arquivado_em ? `<button class="btn btn--peq btn--verde" data-status="ativo" data-id="${r.id}">Ativar</button>` : ''}
+        ${r.status === 'ativo' && !r.arquivado_em ? `<button class="btn btn--peq btn--perigo" data-status="encerrado" data-id="${r.id}">Encerrar</button>` : ''}
+        ${r.status === 'encerrado' && !r.arquivado_em ? `<button class="btn btn--peq" data-status="ativo" data-id="${r.id}">Reabrir</button>` : ''}
+        ${r.arquivado_em ? `<button class="btn btn--peq" data-arquivo="desarquivar" data-id="${r.id}">Desarquivar</button>` : r.status === 'encerrado' ? `<button class="btn btn--peq" data-arquivo="arquivar" data-id="${r.id}">Arquivar</button>` : ''}
         <a class="btn btn--peq" href="/api/rallies/${r.id}/exportar/ranking.csv">Ranking CSV</a>
         <a class="btn btn--peq" href="/api/rallies/${r.id}/exportar/lancamentos.csv">Pontos CSV</a>
       </div></div>`).join('') : vazio('Nenhum rally ainda.')}`;
  
+  el.querySelector('#incluir-arquivados').addEventListener('change', e => { location.hash = e.target.checked ? '#/rallies?arquivados=1' : '#/rallies'; });
   const recarregar = async (preferido) => {
     await carregarRallies(preferido);
     window.dispatchEvent(new Event('rally:recarregar'));
@@ -77,6 +81,12 @@ export default async function rallies(el) {
       },
     });
   }));
+  on(el, 'click', '[data-arquivo]', async b => {
+    const r = lista.find(x => x.id === Number(b.dataset.id)); const operacao = b.dataset.arquivo;
+    const ok = await confirmar({ titulo: operacao === 'arquivar' ? 'Arquivar rally' : 'Desarquivar rally', mensagem: `<p>${operacao === 'arquivar' ? 'Arquivar' : 'Desarquivar'} <b>${esc(r.nome)}</b>? Os dados ficam preservados. Desarquivar não reabre o rally.</p>`, botao: operacao === 'arquivar' ? 'Arquivar' : 'Desarquivar' });
+    if (!ok) return;
+    await acao(b, async () => { await api('POST', `/rallies/${r.id}/${operacao}`, {}); toast('Arquivo atualizado. Dados preservados.'); await recarregar(); });
+  });
   on(el, 'click', '[data-usar]', (b) => acao(b, async () => {
     await definirRally(Number(b.dataset.usar));
     window.dispatchEvent(new Event('rally:recarregar'));

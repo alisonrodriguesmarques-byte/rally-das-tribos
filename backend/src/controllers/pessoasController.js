@@ -1,5 +1,6 @@
 const pessoasService = require('../services/pessoasService');
 const authService = require('../services/authService');
+const { conflito } = require('../utils/http');
 const { validar } = require('../utils/validar');
 const { idParam } = require('./_helpers');
  
@@ -26,8 +27,12 @@ module.exports = {
   async atualizar(req, res) {
     res.json(await pessoasService.atualizar(idParam(req), validar(req.body, SPEC, { parcial: true }), req.usuario));
   },
+  async excluir(req, res) {
+    if (req.body?.confirmacao !== 'EXCLUIR') throw conflito('Confirme a exclusão escrevendo EXCLUIR.');
+    res.json(await pessoasService.excluir(idParam(req), req.usuario));
+  },
   async acesso(req, res) {
     const dados = validar(req.body, { email: 'texto', senha: 'texto', papel: ['admin', 'membro'], ativo: 'bool' });
-    res.json(await authService.definirAcesso(idParam(req), dados));
+    res.json(await authService.definirAcesso(idParam(req), dados, req.usuario.id));
   },
 };

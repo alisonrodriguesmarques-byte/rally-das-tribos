@@ -47,7 +47,7 @@ async function definirLideranca(id, dados, usuario) {
   const rt = await obterOuFalhar(id);
   await rallyService.exigirEditavel(rt.rally_id);
   for (const campo of ['cabeca_pessoa_id', 'auxiliar_pessoa_id']) {
-    if (dados[campo] && !(await pessoaRepo.obter(dados[campo]))) throw requisicaoInvalida('Pessoa não encontrada.');
+    if (dados[campo]) { const pessoa = await pessoaRepo.obter(dados[campo]); if (!pessoa || pessoa.excluido_em || !pessoa.ativo) throw requisicaoInvalida('Pessoa não encontrada ou inativa.'); }
   }
   if (dados.cabeca_pessoa_id && dados.cabeca_pessoa_id === dados.auxiliar_pessoa_id) {
     throw requisicaoInvalida('Cabeça e auxiliar precisam ser pessoas diferentes.');
@@ -68,7 +68,7 @@ async function adicionarMembro(rallyTriboId, pessoaId, usuario, trx = null) {
     const rt = await obterOuFalhar(rallyTriboId, t);
     await rallyService.exigirEditavel(rt.rally_id, t);
     const pessoa = await pessoaRepo.obter(pessoaId, t);
-    if (!pessoa) throw requisicaoInvalida('Pessoa não encontrada.');
+    if (!pessoa || pessoa.excluido_em || !pessoa.ativo) throw requisicaoInvalida('Pessoa não encontrada ou inativa.');
     const atual = await triboRepo.membroAtivoNoRally(pessoaId, rt.rally_id, t);
     if (atual) {
       if (atual.rally_tribo_id === rt.id) throw conflito(`${pessoa.nome_completo} já está nesta tribo.`);

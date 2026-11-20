@@ -11,7 +11,9 @@ const SPEC = {
  
 module.exports = {
   async catalogo(_req, res) { res.json(await triboRepo.listarCatalogo()); },
-  async listar(_req, res) { res.json(await rallyService.listar()); },
+  async listar(req, res) { res.json(await rallyService.listar(Boolean(req.usuario.admin && req.query.arquivados === '1'))); },
+  async arquivar(req, res) { res.json(await rallyService.arquivar(idParam(req), req.usuario)); },
+  async desarquivar(req, res) { res.json(await rallyService.arquivar(idParam(req), req.usuario, false)); },
   async atual(_req, res) { res.json(await rallyService.atual()); },
   async obter(req, res) {
     const id = idParam(req);

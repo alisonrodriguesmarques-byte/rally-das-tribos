@@ -57,3 +57,8 @@ Backups diários exigem os secrets do GitHub e uma primeira execução verificad
 
 VERCEL + SUPABASE
 Para publicar na Vercel, siga docs/VERCEL-SUPABASE.md. Não usa INICIAR.bat na nuvem.
+
+ATUALIZAÇÃO DE PRODUÇÃO
+Segurança, Google com aprovação, exclusão lógica, rallies arquivados e notificações.
+Leia docs/SEGURANCA-GOOGLE-NOTIFICACOES.md antes de configurar Google/e-mails.
+Não repita os SQLs de instalação no banco em uso. Usuários farão novo login.

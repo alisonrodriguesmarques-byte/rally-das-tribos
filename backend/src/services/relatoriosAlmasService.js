@@ -1,4 +1,5 @@
 const db = require('../database/connection');
+const notificacoes = require('./notificacoesService');
 const rallyService = require('./rallyService');
 const { exigirLideranca } = require('./acessoService');
 const { requisicaoInvalida, conflito, naoEncontrado, proibido } = require('../utils/http');
@@ -60,6 +61,7 @@ async function salvar(rallyId, dados, ctx, usuario) {
     const id = anterior?.id || await inserir(trx, 'relatorios_almas', valores);
     if (anterior) await trx('relatorios_almas').where({ id }).update(valores);
     await auditoria.registrar({ entidade: 'relatorios_almas', entidadeId: id, acao: valores.status === 'enviado' ? 'enviar' : 'salvar_rascunho', usuarioId: usuario.id, antes: anterior, depois: valores }, trx);
+    if (valores.status === 'enviado') await notificacoes.criar(await notificacoes.admins(trx), {tipo:'relatorio_enviado',titulo:'Relatório semanal recebido',mensagem:'Um relatório semanal foi enviado para conferência.',destino:`#/almas?rally_id=${rallyId}&semana=${periodo.inicio}`},trx);
     return formatar(await consulta(trx).where('r.id', id).first());
   });
 }
@@ -75,6 +77,7 @@ async function avaliar(id, dados, usuario) {
     const dadosNovos = { status: dados.acao === 'conferir' ? 'conferido' : 'rascunho', avaliado_por: usuario.id, avaliado_em: agora(), atualizado_em: agora(), observacao_admin: dados.acao === 'devolver' ? String(dados.motivo).trim() : null };
     await trx('relatorios_almas').where({ id }).update(dadosNovos);
     await auditoria.registrar({ entidade: 'relatorios_almas', entidadeId: id, acao: dados.acao, usuarioId: usuario.id, antes: r, depois: dadosNovos }, trx);
+    if (dados.acao === 'devolver') await notificacoes.criar(await notificacoes.lideres(r.rally_tribo_id,r.responsavel_id,trx), {tipo:'relatorio_devolvido',titulo:'Relatório devolvido para correção',mensagem:'O relatório da sua tribo foi devolvido. Consulte as orientações do administrador e faça a correção.',destino:`#/almas?rally_id=${r.rally_id}&semana=${paraData(r.semana_inicio)}`},trx);
     return { ok: true };
   });
 }

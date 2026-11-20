@@ -10,7 +10,7 @@ const path=require('node:path');
  const client=new Client({connectionString:url,ssl:false});await client.connect();
  let failed=false;
  try{
-  for(const file of ['api.test.js','almas.test.js','rally-tribos.test.js']){
+  for(const file of ['api.test.js','almas.test.js','rally-tribos.test.js','people-archive.test.js','google-auth.test.js','notificacoes.test.js']){
    const schema='teste_'+randomBytes(8).toString('hex');
    await client.query(`CREATE SCHEMA "${schema}"`);
    try{

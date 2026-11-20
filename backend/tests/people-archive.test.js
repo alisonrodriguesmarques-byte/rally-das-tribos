@@ -1,0 +1,71 @@
+if(process.env.RALLY_TEST_POSTGRES!=='1'){process.env.DB_CLIENT='better-sqlite3';delete process.env.DATABASE_URL;}
+else if(!['localhost','127.0.0.1','[::1]'].includes(new URL(process.env.DATABASE_URL).hostname)||!/^teste_[a-f0-9]+$/.test(process.env.DB_SCHEMA||''))throw new Error('Use PostgreSQL local e schema descartável.');
+process.env.DB_FILE = ':memory:';
+const { randomBytes } = require('node:crypto');
+process.env.ADMIN_PASSWORD = randomBytes(24).toString('hex');
+process.env.JWT_SECRET = randomBytes(32).toString('hex');
+const { test, before, after } = require('node:test');
+const assert = require('node:assert/strict');
+const db = require('../src/database/connection');
+const pessoas = require('../src/services/pessoasService');
+const rallies = require('../src/services/rallyService');
+const pessoaRepo = require('../src/repositories/pessoaRepo');
+let admin, memberId, personId, active, closed, rtActive, rtClosed, pointId;
+const rowId = async (table, data) => { const [r] = await db(table).insert(data).returning('id'); return r.id ?? r; };
+before(async () => {
+ await db.migrate.latest(); await db.seed.run();
+ admin = { ...(await db('usuarios').where({ papel: 'admin' }).first()), admin: true };
+ personId = await rowId('pessoas', { nome_completo: 'Pessoa a excluir' });
+ memberId = await rowId('usuarios', { pessoa_id: personId, email: 'excluir@teste.local', senha_hash: 'sem-login', papel: 'membro' });
+ active = await rowId('rallies', { nome: 'Atual', data_inicio: '2026-01-01', data_fim: '2026-12-31', status: 'ativo' });
+ closed = await rowId('rallies', { nome: 'Histórico', data_inicio: '2025-01-01', data_fim: '2025-12-31', status: 'encerrado' });
+ const tribe = await db('tribos').first();
+ rtActive = await rowId('rally_tribos', { rally_id: active, tribo_id: tribe.id, cabeca_pessoa_id: personId });
+ rtClosed = await rowId('rally_tribos', { rally_id: closed, tribo_id: tribe.id, cabeca_pessoa_id: personId });
+ for (const rt of [rtActive, rtClosed]) await rowId('membros_tribo', { pessoa_id: personId, rally_tribo_id: rt });
+ pointId = await rowId('lancamentos', { rally_id: closed, rally_tribo_id: rtClosed, pessoa_id: personId, pontos: 300, motivo: 'Histórico', origem_tipo: 'manual', data_referencia: '2025-02-01', criado_por: admin.id });
+});
+after(() => db.destroy());
+test('somente admin exclui; autoexclusão e último admin ficam protegidos', async () => {
+ await assert.rejects(pessoas.excluir(personId, { id: memberId, admin: false }), e => e.status === 403);
+ await assert.rejects(pessoas.excluir(admin.pessoa_id, admin), e => e.status === 409);
+ const inactiveId=await rowId('pessoas',{nome_completo:'Admin inativo',ativo:false});
+ await rowId('usuarios',{pessoa_id:inactiveId,email:'inativo@example.test',senha_hash:'sem-acesso',papel:'admin',ativo:true});
+ await assert.rejects(pessoas.excluir(admin.pessoa_id, { id: 999, admin: true }), /último administrador/);
+ assert.equal(Boolean((await db('usuarios').where({ id: admin.id }).first()).ativo), true);
+});
+test('exclusão bloqueia acesso e preserva pontos e vínculos históricos', async () => {
+ const beforeCount = Number((await db('pessoas').count({ n: '*' }).first()).n);
+ const r = await pessoas.excluir(personId, admin); assert.equal(r.historico_preservado, true);
+ const user = await db('usuarios').where({ id: memberId }).first(); assert.equal(Boolean(user.ativo), false); assert.equal(user.auth_versao, 1);
+ assert.equal(Number((await db('pessoas').count({ n: '*' }).first()).n), beforeCount);
+ assert.equal((await db('membros_tribo').where({ rally_tribo_id: rtActive }).first()).status, 'inativo');
+ assert.equal((await db('membros_tribo').where({ rally_tribo_id: rtClosed }).first()).status, 'ativo');
+ assert.equal((await db('rally_tribos').where({ id: rtActive }).first()).cabeca_pessoa_id, null);
+ assert.equal((await db('rally_tribos').where({ id: rtClosed }).first()).cabeca_pessoa_id, personId);
+ assert.equal((await db('lancamentos').where({ id: pointId }).first()).pontos, 300);
+ assert.equal(await pessoaRepo.obter(personId), undefined);
+ assert.ok(!(await pessoaRepo.listar()).some(p => p.id === personId));
+ assert.ok((await pessoas.obter(personId, closed)).excluido_em);
+ await assert.rejects(pessoas.atualizar(personId, { ativo: true }, admin), e => e.status === 404);
+});
+test('novo rally não copia liderança ou participação de pessoa excluída', async () => {
+ const tribe = await db('tribos').first();
+ const novo = await rallies.criar({ nome: 'Novo', data_inicio: '2027-01-01', data_fim: '2027-12-31', status: 'planejado', tribos: [tribe.id], copiar_participantes: true }, admin);
+ const rt = await db('rally_tribos').where({ rally_id: novo.id }).first();
+ assert.equal(rt.cabeca_pessoa_id, null);
+ assert.equal(Number((await db('membros_tribo').where({ rally_tribo_id: rt.id }).count({ n: '*' }).first()).n), 0);
+});
+test('arquivamento exige encerramento e mantém o histórico somente leitura', async () => {
+ await assert.rejects(rallies.arquivar(active, admin), e => e.status === 409);
+ await assert.rejects(rallies.arquivar(closed, { id: memberId, admin: false }), e => e.status === 403);
+ const archived = await rallies.arquivar(closed, admin); assert.ok(archived.arquivado_em);
+ assert.ok(!(await rallies.listar()).some(r => r.id === closed));
+ assert.ok((await rallies.listar(true)).some(r => r.id === closed));
+ assert.notEqual((await rallies.atual()).id, closed);
+ await assert.rejects(rallies.atualizar(closed, { status: 'ativo' }), /Desarquive/);
+ await assert.rejects(rallies.exigirEditavel(closed), /arquivado/);
+ assert.equal((await db('lancamentos').where({ id: pointId }).first()).pontos, 300);
+ const restored = await rallies.arquivar(closed, admin, false); assert.equal(restored.arquivado_em, null); assert.equal(restored.status, 'encerrado');
+ assert.ok((await rallies.listar()).some(r => r.id === closed));
+});

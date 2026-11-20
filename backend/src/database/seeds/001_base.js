@@ -27,14 +27,14 @@ exports.seed = async function seed(knex) {
  
   const temAdmin = await knex('usuarios').where({ papel: 'admin' }).first();
   if (!temAdmin) {
-    if (!config.admin.senha || config.admin.senha.length < 8) {
-      throw new Error('Defina ADMIN_PASSWORD com pelo menos 8 caracteres para criar o administrador.');
+    if (!config.admin.senha || config.admin.senha.length < 12) {
+      throw new Error('Defina ADMIN_PASSWORD com pelo menos 12 caracteres para criar o administrador.');
     }
     const [pessoa] = await knex('pessoas').insert({ nome_completo: config.admin.nome }).returning('id');
     await knex('usuarios').insert({
       pessoa_id: pessoa.id ?? pessoa,
       email: config.admin.email,
-      senha_hash: await bcrypt.hash(config.admin.senha, 10),
+      senha_hash: await bcrypt.hash(config.admin.senha, 12),
       papel: 'admin',
     });
   }

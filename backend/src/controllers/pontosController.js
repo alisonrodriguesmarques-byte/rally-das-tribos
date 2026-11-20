@@ -6,10 +6,7 @@ const { idParam, contexto } = require('./_helpers');
 const { proibido } = require('../utils/http');
  
 function csv(linhas, colunas) {
-  const esc = (v) => {
-    const s = v === null || v === undefined ? '' : String(v);
-    return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
+  const esc = require('../utils/csv').celulaCsv;
   return `\ufeff${colunas.map((c) => c[1]).join(';')}\n${linhas.map((l) => colunas.map((c) => esc(l[c[0]])).join(';')).join('\n')}`;
 }
  

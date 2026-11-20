@@ -59,3 +59,7 @@ Para Render + PostgreSQL no Supabase, veja [o guia completo](docs/SUPABASE-RENDE
 ## Vercel + Supabase
 
 Para a hospedagem escolhida, siga [VERCEL-SUPABASE.md](docs/VERCEL-SUPABASE.md). Frontend estático, API serverless, banco externo obrigatório e preparação de migrações separada. O suporte local e ao Render continua disponível.
+
+## Atualização: segurança, Google, arquivo e notificações
+
+Veja [SEGURANCA-GOOGLE-NOTIFICACOES.md](docs/SEGURANCA-GOOGLE-NOTIFICACOES.md). Migrações aditivas preservam dados em uso; exclusão de cadastro é lógica e mantém histórico. Login Google exige aprovação e vínculo por admin, e confirmação da senha ao vincular uma conta administrativa. Notificações internas funcionam sem provedor; e-mails são opcionais por usuário e podem usar Resend HTTPS no Render Free. Segredos e configuração Google/Resend são feitos nos painéis, não no GitHub.

@@ -7,7 +7,7 @@ import { FORM_PESSOA } from './pessoas.js';
 import { itemLancamento } from './lancamentos.js';
  
 const ACOES = {
-  criar: 'Cadastro criado', editar: 'Dados editados', entrar_tribo: 'Entrou na tribo', sair_tribo: 'Saiu da tribo', transferir: 'Transferido',
+  excluir: 'Cadastro excluído', criar: 'Cadastro criado', editar: 'Dados editados', entrar_tribo: 'Entrou na tribo', sair_tribo: 'Saiu da tribo', transferir: 'Transferido',
 };
  
 function descreverMudanca(a) {
@@ -29,8 +29,8 @@ export default async function pessoa(el, { id }) {
   el.innerHTML = `
     <div class="cartao linha">${avatar(p.apelido || p.nome_completo, '#2d3b5e', p.foto_url)}
       <div class="cresce"><h2 style="margin:0">${esc(p.nome_completo)}</h2><div class="suave">${esc(p.apelido || '')}${p.telefone ? ` · ${esc(p.telefone)}` : ''}</div></div>
-      ${p.ativo ? '' : '<span class="etiqueta etiqueta--vermelho">inativo</span>'}</div>
-    <div class="botoes" style="margin-bottom:.85rem"><button class="btn" id="editar">Editar dados</button><button class="btn" id="acesso">${p.acesso ? 'Acesso ao sistema' : 'Criar acesso ao sistema'}</button></div>
+      ${p.excluido_em ? '<span class="etiqueta etiqueta--vermelho">excluído</span>' : p.ativo ? '' : '<span class="etiqueta etiqueta--vermelho">inativo</span>'}</div>
+    ${p.excluido_em ? '<div class="cartao"><p>Cadastro excluído. O histórico continua disponível para consulta.</p></div>' : `<div class="botoes" style="margin-bottom:.85rem"><button class="btn" id="editar">Editar dados</button><button class="btn" id="acesso">${p.acesso ? 'Acesso ao sistema' : 'Criar acesso ao sistema'}</button><button class="btn btn--perigo" id="excluir">Excluir pessoa</button></div>`}
     ${p.acesso ? `<div class="cartao"><h3>Acesso</h3><div class="linha"><span class="cresce">${esc(p.acesso.email)}</span>${p.acesso.papel === 'admin' ? '<span class="etiqueta etiqueta--azul">administrador</span>' : '<span class="etiqueta">membro</span>'}${p.acesso.ativo ? '' : '<span class="etiqueta etiqueta--vermelho">bloqueado</span>'}</div></div>` : ''}
     <div class="cartao"><h3>Tribos (todos os rallies)</h3>${p.tribos.length ? `<ul class="lista">${p.tribos.map((t) => `
       <li><div class="cresce"><b>${esc(t.tribo_nome)}</b><div class="suave pequeno">${esc(t.rally_nome)} · ${fmtData(t.entrou_em)}${t.saiu_em ? ` a ${fmtData(t.saiu_em)}` : ''}</div></div>
@@ -41,6 +41,14 @@ export default async function pessoa(el, { id }) {
     <div class="cartao"><h3>Alterações no cadastro</h3>${p.alteracoes.length ? `<ul class="lista">${p.alteracoes.map((a) => `
       <li><div class="cresce"><b>${esc(ACOES[a.acao] || a.acao)}</b> <span class="suave">${esc(descreverMudanca(a))}</span></div><div class="direita suave pequeno">${esc(a.usuario_email || '')}<br>${fmtDataHora(a.em || a.criado_em)}</div></li>`).join('')}</ul>` : vazio('Nenhuma.')}</div>`;
  
+  if (p.excluido_em) return;
+  el.querySelector('#excluir').addEventListener('click', () => modal({
+    titulo: 'Excluir pessoa',
+    html: `<form><p>Excluir <b>${esc(p.nome_completo)}</b>? A pessoa sairá das listas e seu acesso será bloqueado. Pontos, relatórios e histórico serão preservados.</p><label class="campo"><span>Digite EXCLUIR para confirmar</span><input name="confirmacao" required pattern="EXCLUIR" autocomplete="off"></label><button class="btn btn--perigo btn--bloco" type="submit">Excluir pessoa</button></form>`,
+    aoAbrir: (m, fechar) => aoEnviar(m.querySelector('form'), async d => {
+      await api('DELETE', `/pessoas/${p.id}`, d); fechar(); toast('Pessoa excluída. Histórico preservado.'); location.hash = '#/pessoas';
+    }),
+  }));
   el.querySelector('#editar').addEventListener('click', () => modal({
     titulo: 'Editar pessoa',
     html: `<form>${FORM_PESSOA(p)}<label class="check"><input type="checkbox" name="ativo"${p.ativo ? ' checked' : ''}> Cadastro ativo</label>
@@ -56,9 +64,9 @@ export default async function pessoa(el, { id }) {
   el.querySelector('#acesso').addEventListener('click', () => modal({
     titulo: 'Acesso ao sistema',
     html: `<form>
-      <p class="suave pequeno">Com o acesso, a pessoa entra no sistema e vê a própria tribo, as missões e as provas. Cabeças e auxiliares também podem enviar resultados de missões. Somente administradores lançam pontos.</p>
+      <p class="suave pequeno">Com o acesso, a pessoa entra no sistema e vê a própria tribo, as missões . Cabeças e auxiliares também podem enviar resultados de missões. Somente administradores lançam pontos.</p>
       <label class="campo"><span>E-mail de login</span><input name="email" type="email" ${p.acesso ? '' : 'required'} value="${esc(p.acesso?.email || '')}"></label>
-      <label class="campo"><span>${p.acesso ? 'Nova senha (deixe vazio para manter)' : 'Senha inicial'}</span><input name="senha" type="text" minlength="6" ${p.acesso ? '' : 'required'} autocomplete="new-password"></label>
+      <label class="campo"><span>${p.acesso ? 'Nova senha (deixe vazio para manter)' : 'Senha inicial'}</span><input name="senha" type="password" minlength="12" maxlength="72" ${p.acesso ? '' : 'required'} autocomplete="new-password"></label>
       <label class="campo"><span>Tipo de acesso</span><select name="papel">${opcoes([['membro', 'Membro (cabeça, auxiliar ou participante)'], ['admin', 'Administrador (acesso total)']], p.acesso?.papel || 'membro')}</select></label>
       ${p.acesso ? `<label class="check"><input type="checkbox" name="ativo"${p.acesso.ativo ? ' checked' : ''}> Acesso liberado</label>` : ''}
       <button class="btn btn--primario btn--bloco" type="submit">Salvar acesso</button></form>`,

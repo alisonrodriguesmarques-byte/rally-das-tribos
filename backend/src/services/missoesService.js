@@ -1,4 +1,5 @@
 const db = require('../database/connection');
+const notificacoes = require('./notificacoesService');
 const missaoRepo = require('../repositories/missaoRepo');
 const rallyService = require('./rallyService');
 const pontuacao = require('./pontuacaoService');
@@ -57,6 +58,9 @@ async function criar(rallyId, dados, usuario) {
   return db.transaction(async (trx) => {
     const id = await missaoRepo.criar({ ...campos, rally_id: rallyId, criado_por: usuario.id, todas_tribos: !tribos.length }, trx);
     await missaoRepo.definirTribos(id, tribos, trx);
+    if (!campos.status || campos.status === 'aberta') await notificacoes.criar(await notificacoes.audiencia(rallyId, tribos, trx), {
+      tipo:'missao_criada', titulo:'Nova missão disponível', mensagem:'Uma nova missão foi publicada para sua participação. Abra a missão para consultar as orientações.', destino:`#/missoes/${id}?rally_id=${rallyId}`,
+    }, trx);
     return id;
   });
 }
@@ -95,6 +99,7 @@ async function aprovarInterno(entrega, missao, ajustes, usuario, trx) {
   await missaoRepo.atualizarEntrega(entrega.id, {
     ...ajustes, status: 'aprovada', avaliado_por: usuario.id, avaliado_em: agora(), lancamento_id: lancamentoId,
   }, trx);
+  await notificacoes.criar(await notificacoes.lideres(entrega.rally_tribo_id, entrega.enviado_por, trx), {tipo:'missao_aprovada',titulo:'Resultado de missão avaliado',mensagem:'O resultado enviado pela sua tribo foi aprovado. Consulte a missão para acompanhar.',destino:`#/missoes/${missao.id}?rally_id=${missao.rally_id}`},trx);
   return pontos;
 }
  
@@ -128,6 +133,7 @@ async function enviarEntrega(missaoId, dados, usuario, ctx) {
     const aprovarAgora = ctx.admin ? dados.aprovar !== false
       : !missao.requer_aprovacao && missao.tipo_pontuacao !== 'manual';
     if (aprovarAgora) await aprovarInterno(entrega, missao, {}, usuario, trx);
+    if (!ctx.admin) await notificacoes.criar(await notificacoes.admins(trx), { tipo:'missao_entrega', titulo:'Resultado de missão recebido', mensagem:'Uma tribo enviou o resultado de uma missão. Consulte os envios para acompanhar.', destino:`#/missoes/${missaoId}?rally_id=${missao.rally_id}` }, trx);
     return id;
   });
 }
@@ -152,6 +158,7 @@ async function rejeitarEntrega(id, motivo, usuario) {
     await missaoRepo.atualizarEntrega(id, {
       status: 'rejeitada', avaliado_por: usuario.id, avaliado_em: agora(), observacao_admin: motivo || null,
     }, trx);
+    await notificacoes.criar(await notificacoes.lideres(entrega.rally_tribo_id, entrega.enviado_por, trx), {tipo:'missao_rejeitada',titulo:'Resultado de missão devolvido',mensagem:'Um resultado da sua tribo precisa de revisão. Consulte as orientações na missão.',destino:`#/missoes/${missao.id}?rally_id=${missao.rally_id}`},trx);
   });
 }
  

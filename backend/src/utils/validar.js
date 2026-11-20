@@ -25,13 +25,15 @@ function validar(dados, spec, { parcial = false } = {}) {
  
     switch (regra) {
       case 'texto':
-        valor = String(valor).trim();
+        if (typeof valor !== 'string' || valor.length > 10000) { erros[campo] = 'Informe um texto de até 10.000 caracteres.'; break; }
+        valor = valor.trim();
         if (obrigatorio && !valor) erros[campo] = 'Campo obrigatório.';
         break;
       case 'inteiro':
       case 'id':
+        if (typeof valor === 'boolean' || typeof valor === 'object') { erros[campo] = 'Informe um número inteiro.'; break; }
         valor = Number(valor);
-        if (!Number.isInteger(valor)) erros[campo] = 'Informe um número inteiro.';
+        if (!Number.isSafeInteger(valor)) erros[campo] = 'Informe um número inteiro.';
         else if (regra === 'id' && valor <= 0) erros[campo] = 'Identificador inválido.';
         break;
       case 'numero':
@@ -45,13 +47,14 @@ function validar(dados, spec, { parcial = false } = {}) {
         if (Number.isNaN(Date.parse(valor))) erros[campo] = 'Data/hora inválida.';
         break;
       case 'bool':
+        if (![true,false,0,1,'0','1','true','false'].includes(valor)) { erros[campo] = 'Informe verdadeiro ou falso.'; break; }
         valor = valor === true || valor === 1 || valor === '1' || valor === 'true';
         break;
       case 'lista':
-        if (!Array.isArray(valor)) erros[campo] = 'Informe uma lista.';
+        if (!Array.isArray(valor) || valor.length > 1000) erros[campo] = 'Informe uma lista.';
         break;
       case 'objeto':
-        if (typeof valor !== 'object') erros[campo] = 'Formato inválido.';
+        if (typeof valor !== 'object' || Array.isArray(valor)) erros[campo] = 'Formato inválido.';
         break;
       case 'opcao':
         if (!opcoes.includes(valor)) erros[campo] = `Valor deve ser um de: ${opcoes.join(', ')}.`;

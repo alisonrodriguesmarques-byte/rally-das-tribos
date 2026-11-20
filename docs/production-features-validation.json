@@ -1,0 +1,20 @@
+{
+  "sqliteAndSecurityTests": 63,
+  "postgresSuiteTests": 48,
+  "browserChecks": 40,
+  "productionDataAccess": false,
+  "externalGoogleCalls": false,
+  "realEmailsSent": false,
+  "additiveMigrations": [
+    "003_seguranca_google_arquivamento.js",
+    "004_notificacoes.js"
+  ],
+  "preservationTest": "IDs, senha_hash, pontos e relatórios de instalação antiga permanecem iguais",
+  "dependencyAudit": "npm audit --omit=dev: 0 vulnerabilidades reportadas",
+  "externalSetupRequired": [
+    "APP_URL",
+    "Google OAuth client and consent",
+    "Resend HTTPS or SMTP with verified sender",
+    "per-user email opt-in"
+  ]
+}

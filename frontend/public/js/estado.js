@@ -5,7 +5,7 @@ export const estado = { usuario: null, rallies: [], rally: null, ctx: null, trib
 export const ehAdmin = () => Boolean(estado.usuario?.admin);
 export const ehLider = () => ['cabeca', 'auxiliar'].includes(estado.ctx?.funcao);
 export const rid = () => estado.rally?.id;
-export const somenteLeitura = () => estado.rally?.status === 'encerrado';
+export const somenteLeitura = () => estado.rally?.status === 'encerrado' || Boolean(estado.rally?.arquivado_em);
 export const triboPorId = (id) => estado.tribos.find((t) => t.id === Number(id));
  
 export async function carregarSessao() {

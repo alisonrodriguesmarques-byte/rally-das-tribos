@@ -22,6 +22,8 @@ const ROTAS = [
   ['/categorias', 'categorias', { admin: true }],
   ['/mais', 'mais'],
   ['/senha', 'senha', { voltar: true }],
+  ['/notificacoes', 'notificacoes'],
+  ['/google-vinculos', 'google-vinculos', { admin: true }],
 ].map(([padrao, vista, opcoes = {}]) => ({
   vista,
   ...opcoes,
@@ -44,13 +46,14 @@ function atualizarLayout(rota, caminho) {
   lateral.hidden = publica;
   nav.hidden = publica;
   app.className = publica ? '' : 'conteudo';
+  if (!publica) void atualizarNotificacoes();
   if (publica) { lateral.replaceChildren(); return; }
   const r = estado.rally;
   document.getElementById('topo-rally').textContent = r ? `${r.nome}${r.status === 'encerrado' ? ' (encerrado)' : ''}` : 'Nenhum rally';
   document.getElementById('btn-voltar').hidden = !rota.voltar;
   const itens = ehAdmin() ? NAV_ADMIN : NAV_MEMBRO.filter(([href]) => href !== '/almas' || ['cabeca', 'auxiliar'].includes(estado.ctx?.funcao));
   const raiz = `/${caminho.split('/')[1] || ''}`;
-  const sidebarItens = ehAdmin() ? [['/', '🏠', 'Início'], ['/rallies', '🏁', 'Rallies'], ['/tribos', '🛡️', 'Tribos'], ['/pessoas', '👥', 'Participantes'], ['/ranking', '🏆', 'Ranking'], ['/almas', '📒', 'Relatório de almas'], ['/missoes', '🎯', 'Missões'], ['/lancar', '+', 'Lançar pontos'], ['/mais', '☰', 'Mais opções']] : [['/', '🏠', 'Início'], ['/tribos', '🛡️', 'Tribos'], ...(['cabeca', 'auxiliar'].includes(estado.ctx?.funcao) ? [['/almas', '📒', 'Relatório de almas']] : []), ['/missoes', '🎯', 'Missões'], ['/mais', '☰', 'Mais opções']];
+  const sidebarItens = ehAdmin() ? [['/', '🏠', 'Início'], ['/rallies', '🏁', 'Rallies'], ['/tribos', '🛡️', 'Tribos'], ['/pessoas', '👥', 'Participantes'], ['/ranking', '🏆', 'Ranking'], ['/almas', '📒', 'Relatório de almas'], ['/missoes', '🎯', 'Missões'], ['/lancar', '+', 'Lançar pontos'], ['/notificacoes', '🔔', 'Notificações'], ['/google-vinculos', '🔑', 'Contas Google'], ['/mais', '☰', 'Mais opções']] : [['/', '🏠', 'Início'], ['/tribos', '🛡️', 'Tribos'], ...(['cabeca', 'auxiliar'].includes(estado.ctx?.funcao) ? [['/almas', '📒', 'Relatório de almas']] : []), ['/missoes', '🎯', 'Missões'], ['/notificacoes', '🔔', 'Notificações'], ['/mais', '☰', 'Mais opções']];
   lateral.innerHTML = `<a class="lateral__marca" href="#/">${marca()}</a><div class="lateral__legenda">UNIDOS POR UM SÓ PROPÓSITO</div><div class="lateral__grupo">${ehAdmin() ? 'ADMINISTRAÇÃO' : 'MINHA JORNADA'}</div><nav class="lateral__links">${sidebarItens.map(([href, ico, rotulo]) => `<a href="#${href}"${raiz === href ? ' class="ativo" aria-current="page"' : ''}>${icone(ico)}<span>${rotulo}</span></a>`).join('')}</nav><div class="lateral__rodape"><span class="usuario-inicial">${esc(estado.usuario.nome.slice(0, 1))}</span><div><b>${esc(estado.usuario.nome)}</b><small>${ehAdmin() ? 'Administrador' : {cabeca:'Cabeça de tribo',auxiliar:'Auxiliar',participante:'Participante'}[estado.ctx?.funcao] || 'Membro'}</small></div><button type="button" id="lateral-sair" aria-label="Sair da conta">${icone('🚪')}</button></div>`;
   lateral.querySelector('#lateral-sair').addEventListener('click', sair);
   nav.innerHTML = itens.map(([href, ico, rotulo, destaque]) => `
@@ -143,3 +146,14 @@ window.addEventListener('hashchange', renderizar);
 window.addEventListener('rally:recarregar', renderizar);
 iniciarTema();
 renderizar();
+
+async function atualizarNotificacoes() {
+  if(!estado.usuario || document.hidden) return;
+  try {
+    const dados=await api('GET','/notificacoes/contagem');
+    const badge=document.getElementById('notificacoes-contagem');
+    if(badge) { badge.textContent=dados.nao_lidas>99?'99+':String(dados.nao_lidas||'');badge.hidden=!dados.nao_lidas; }
+  } catch { /* O conteúdo principal permanece disponível em falha transitória. */ }
+}
+setInterval(atualizarNotificacoes,60000);
+window.addEventListener('rally:notificacoes',atualizarNotificacoes);
