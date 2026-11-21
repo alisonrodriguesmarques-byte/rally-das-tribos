@@ -49,3 +49,20 @@ test('novos eventos são pessoais e não geram mais e-mails',async()=>{
  assert.equal((await worker.processarFila({transport:{sendMail:()=>{throw Error('Não deveria enviar');}}})).processadas,0);
 });
 test('contador do sino não expõe as mensagens',async()=>{const r=await service.contar(leader.id);assert.deepEqual(Object.keys(r),['nao_lidas']);});
+test('7 dias removem avisos lidos/não lidos e fila antiga, preservando recentes e dados do rally',async()=>{
+ const now=new Date(),ms=86400000;
+ const old=await inserir(db,'notificacoes',{usuario_id:leader.id,tipo:'teste',titulo:'Antiga',mensagem:'A',destino:'#/notificacoes',criado_em:new Date(now.getTime()-8*ms).toISOString()});
+ const edge=await inserir(db,'notificacoes',{usuario_id:aux.id,tipo:'teste',titulo:'Limite',mensagem:'B',destino:'#/notificacoes',criado_em:new Date(now.getTime()-7*ms).toISOString(),lido_em:now.toISOString()});
+ const recent=await inserir(db,'notificacoes',{usuario_id:leader.id,tipo:'teste',titulo:'Recente',mensagem:'C',destino:'#/notificacoes',criado_em:new Date(now.getTime()-6*ms).toISOString()});
+ await inserir(db,'notificacoes_email',{notificacao_id:old,status:'enviado'});
+ const rallies=await db('rallies').select('*');const reports=await db('relatorios_almas').select('*');
+ await service.limparExpiradas(now);
+ assert.equal(await db('notificacoes').where({id:old}).first(),undefined);assert.equal(await db('notificacoes').where({id:edge}).first(),undefined);assert.ok(await db('notificacoes').where({id:recent}).first());assert.equal(await db('notificacoes_email').where({notificacao_id:old}).first(),undefined);
+ assert.deepEqual(await db('rallies').select('*'),rallies);assert.deepEqual(await db('relatorios_almas').select('*'),reports);
+});
+test('exclusão manual só permite apagar avisos próprios e atualiza o contador',async()=>{
+ const own=await inserir(db,'notificacoes',{usuario_id:leader.id,tipo:'teste',titulo:'Meu',mensagem:'Texto',destino:'#/notificacoes'});
+ const count=(await service.contar(leader.id)).nao_lidas;
+ await assert.rejects(service.excluir(other.id,own),e=>e.status===404);assert.ok(await db('notificacoes').where({id:own}).first());
+ await service.excluir(leader.id,own);assert.equal(await db('notificacoes').where({id:own}).first(),undefined);assert.equal((await service.contar(leader.id)).nao_lidas,count-1);
+});

@@ -55,7 +55,7 @@ function atualizarLayout(rota, caminho) {
   document.getElementById('btn-voltar').hidden = !rota.voltar;
   const itens = ehAdmin() ? NAV_ADMIN : NAV_MEMBRO.filter(([href]) => href !== '/almas' || ['cabeca', 'auxiliar'].includes(estado.ctx?.funcao));
   const raiz = `/${caminho.split('/')[1] || ''}`;
-  const sidebarItens = ehAdmin() ? [['/', '🏠', 'Início'], ['/rallies', '🏁', 'Rallies'], ['/tribos', '🛡️', 'Tribos'], ['/pessoas', '👥', 'Participantes'], ['/ranking', '🏆', 'Ranking'], ['/almas', '📒', 'Relatório de almas'], ['/missoes', '🎯', 'Missões'], ['/lancar', '+', 'Lançar pontos'], ['/notificacoes', '🔔', 'Notificações'], ['/cadastros', '👥', 'Validar cadastros'], ['/google-vinculos', '🔑', 'Contas Google'], ['/mais', '☰', 'Mais opções']] : [['/', '🏠', 'Início'], ['/tribos', '🛡️', 'Tribos'], ...(['cabeca', 'auxiliar'].includes(estado.ctx?.funcao) ? [['/almas', '📒', 'Relatório de almas']] : []), ['/missoes', '🎯', 'Missões'], ['/notificacoes', '🔔', 'Notificações'], ['/mais', '☰', 'Mais opções']];
+  const sidebarItens = ehAdmin() ? [['/', '🏠', 'Início'], ['/rallies', '🏁', 'Rallies'], ['/tribos', '🛡️', 'Tribos'], ['/pessoas', '👥', 'Participantes'], ['/ranking', '🏆', 'Ranking'], ['/almas', '📒', 'Relatório de almas'], ['/missoes', '🎯', 'Missões'], ['/lancar', '+', 'Lançar pontos'], ['/notificacoes', '🔔', 'Notificações'], ['/google-vinculos', '🔑', 'Contas Google'], ['/mais', '☰', 'Mais opções']] : [['/', '🏠', 'Início'], ['/tribos', '🛡️', 'Tribos'], ...(['cabeca', 'auxiliar'].includes(estado.ctx?.funcao) ? [['/almas', '📒', 'Relatório de almas']] : []), ['/missoes', '🎯', 'Missões'], ['/notificacoes', '🔔', 'Notificações'], ['/mais', '☰', 'Mais opções']];
   lateral.innerHTML = `<a class="lateral__marca" href="#/">${marca()}</a><div class="lateral__legenda">UNIDOS POR UM SÓ PROPÓSITO</div><div class="lateral__grupo">${ehAdmin() ? 'ADMINISTRAÇÃO' : 'MINHA JORNADA'}</div><nav class="lateral__links">${sidebarItens.map(([href, ico, rotulo]) => `<a href="#${href}"${raiz === href ? ' class="ativo" aria-current="page"' : ''}>${icone(ico)}<span>${rotulo}</span></a>`).join('')}</nav><div class="lateral__rodape"><span class="usuario-inicial">${esc(estado.usuario.nome.slice(0, 1))}</span><div><b>${esc(estado.usuario.nome)}</b><small>${ehAdmin() ? 'Administrador' : {cabeca:'Cabeça de tribo',auxiliar:'Auxiliar',participante:'Participante'}[estado.ctx?.funcao] || 'Membro'}</small></div><button type="button" id="lateral-sair" aria-label="Sair da conta">${icone('🚪')}</button></div>`;
   lateral.querySelector('#lateral-sair').addEventListener('click', sair);
   nav.innerHTML = itens.map(([href, ico, rotulo, destaque]) => `
@@ -153,10 +153,12 @@ renderizar();
 
 async function atualizarNotificacoes() {
   if(!estado.usuario || document.hidden) return;
+  const usuario=estado.usuario.id;
   try {
     const dados=await api('GET','/notificacoes/contagem');
+    if(estado.usuario?.id!==usuario)return;
     const badge=document.getElementById('notificacoes-contagem');
-    if(badge) { badge.textContent=dados.nao_lidas>99?'99+':String(dados.nao_lidas||'');badge.hidden=!dados.nao_lidas; }
+    if(badge) { badge.textContent=dados.nao_lidas>99?'99+':String(dados.nao_lidas||'');badge.hidden=!dados.nao_lidas;badge.closest('a').setAttribute('aria-label',`Notificações: ${dados.nao_lidas} não lidas`); }
   } catch { /* O conteúdo principal permanece disponível em falha transitória. */ }
 }
 setInterval(atualizarNotificacoes,60000);
@@ -174,3 +176,6 @@ async function mostrarNovidades(){
   modal({titulo:'Novidades para você',aoFechar:()=>{void Promise.all(dados.itens.map(n=>api('POST',`/notificacoes/${n.id}/ler`))).then(atualizarNotificacoes).catch(()=>{});},html:`<div class="novidades-login">${dados.itens.map(n=>`<article class="cartao"><h3>${esc(n.titulo)}</h3><p style="white-space:pre-line">${esc(n.mensagem)}</p></article>`).join('')}</div><div class="botoes"><button class="btn" data-continuar>Continuar</button><a class="btn btn--primario" href="#/notificacoes">Ver notificações</a></div>`,aoAbrir:(el,fechar)=>{el.querySelector('[data-continuar]').addEventListener('click',fechar);el.querySelector('a').addEventListener('click',fechar);}});
  }catch{/* Volta a tentar no próximo acesso; avisos não são marcados automaticamente. */}
 }
+
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void atualizarNotificacoes();});
+window.addEventListener('focus',atualizarNotificacoes);

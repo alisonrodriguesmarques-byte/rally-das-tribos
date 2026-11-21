@@ -452,3 +452,6 @@ img.emblema { object-fit:contain; border-radius:0; background:transparent; }
 .auth-ou { display:flex;align-items:center;gap:1rem;color:var(--suave);margin:1.2rem 0; }
 .auth-ou::before,.auth-ou::after { content:'';height:1px;background:#7893a455;flex:1; }
 .login__apoio a { font-weight:700;text-decoration:underline; }
+
+.sino-notificacoes { position:relative;overflow:visible; }
+#notificacoes-contagem:not([hidden]) { position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 4px;border-radius:999px;background:#e51e3e;color:white;font:700 11px/19px Arial,sans-serif;text-align:center;box-shadow:0 0 0 2px #071c31; }

@@ -13,7 +13,6 @@ export default async function mais(el) {
       ['#/almas', '📒', 'Relatório de almas', 'Resumo semanal e envios das tribos'],
       ['#/missoes', '🎯', 'Missões', 'Semanais e aprovações'],
       ['#/rallies', '🏁', 'Rallies', 'Criar, ativar, encerrar'],
-      ['#/cadastros', '👥', 'Validar cadastros', 'Aprovar criação de novas contas'],
       ['#/google-vinculos', '🔑', 'Contas Google', 'Aprovar e vincular acessos'],
       ['#/categorias', '🏷️', 'Categorias', 'Tipos de pontuação'],
       ['#/notificacoes', '🔔', 'Notificações', 'Histórico de atualizações'],

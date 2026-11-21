@@ -7,11 +7,12 @@ async function iniciar() {
   if (config.banco.cliente === 'pg') await db.raw('CREATE SCHEMA IF NOT EXISTS ??', [config.banco.schema]);
   await db.migrate.latest();
   await db.seed.run();
+  const pararLimpeza=require('./services/notificacoesService').iniciarLimpeza();
   const app = criarApp();
   const server = app.listen(config.porta, '0.0.0.0', () => {
     console.log(`Rally das Tribos rodando em http://localhost:${config.porta}`);
   });
-  process.once('SIGTERM', () => { server.close(() => { db.destroy().finally(() => process.exit(0)); }); });
+  process.once('SIGTERM', () => { pararLimpeza(); server.close(() => { db.destroy().finally(() => process.exit(0)); }); });
 }
  
 iniciar().catch((err) => {

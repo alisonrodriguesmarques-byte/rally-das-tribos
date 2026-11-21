@@ -24,3 +24,11 @@ Os emblemas exibidos usam SVG com recorte vetorial transparente ao redor do meda
 As requisições já recebidas, os vínculos Google, as preferências antigas e a antiga fila de e-mail são preservados para histórico; o worker é inerte e não processa envios. As senhas dos pedidos aprovados/rejeitados são removidas da tabela de solicitações depois da avaliação; a conta aprovada conserva apenas seu hash normal.
 
 Pedidos por formulário não verificam e-mail automaticamente: essa verificação de identidade é responsabilidade do admin. Se já tem uma conta ou foi rejeitado, procure a coordenação, que pode conceder acesso pelo cadastro existente. Não existe recuperação de senha por e-mail nesta versão.
+
+## Retenção e controles atuais
+
+O item Validar cadastros está temporariamente oculto no menu lateral e em Mais; as contas, solicitações e aprovação não foram apagadas. Administradores ainda podem acessar a aprovação pelo aviso recebido ou pelo endereço interno #/cadastros.
+
+Notificações lidas ou não lidas expiram após 7 dias de sua criação. A aplicação limpa os registros vencidos na inicialização, a cada hora enquanto o servidor está ativo e ao consultar notificações/contador. Se o Render estiver suspenso, a limpeza ocorre quando o serviço voltar; avisos vencidos são removidos antes da consulta. Exclui somente notificações e metadados da antiga fila vinculados a elas, sem alterar missões, relatórios, pontos ou cadastros. Backups anteriores seguem sua retenção própria.
+
+Cada pessoa pode excluir manualmente seus próprios avisos, após confirmação. Não é possível apagar avisos de outra pessoa. O sino exibe a quantidade de não lidas (99+ acima de 99, e oculta o selo quando chega a zero), atualizada ao ler/excluir, ao voltar à janela e periodicamente.

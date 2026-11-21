@@ -30,7 +30,29 @@ async function criar(ids, {tipo,titulo,mensagem,destino='#/notificacoes'}, trx=d
 
   }
 }
+const RETENCAO_MS=7*24*60*60*1000;
+function expiradas(q,limite){return q.client.config.client==='pg'?q.where('criado_em','<=',limite):q.whereRaw('datetime(criado_em) <= datetime(?)',[limite]);}
+async function limparExpiradas(instante=new Date()){
+ const limite=new Date(instante.getTime()-RETENCAO_MS).toISOString();
+ return db.transaction(async trx=>{
+  await trx('notificacoes_email').whereIn('notificacao_id',expiradas(trx('notificacoes'),limite).select('id')).del();
+  return expiradas(trx('notificacoes'),limite).del();
+ });
+}
+async function excluir(usuarioId,id){
+ return db.transaction(async trx=>{
+  const row=await trx('notificacoes').where({id,usuario_id:usuarioId}).first();if(!row)throw naoEncontrado('Notificação não encontrada.');
+  await trx('notificacoes_email').where({notificacao_id:row.id}).del();
+  await trx('notificacoes').where({id:row.id,usuario_id:usuarioId}).del();return {ok:true};
+ });
+}
+function iniciarLimpeza(){
+ let busy=false;
+ const executar=async()=>{if(busy)return;busy=true;try{await limparExpiradas();}catch{console.warn('Limpeza de notificações será tentada novamente.');}finally{busy=false;}};
+ void executar();const timer=setInterval(executar,60*60*1000);timer.unref();return ()=>clearInterval(timer);
+}
 async function listar(usuarioId, somenteNaoLidas=false) {
+  await limparExpiradas();
   const query=db('notificacoes').where({usuario_id:usuarioId}).orderBy('id','desc').limit(100);
   if(somenteNaoLidas)query.whereNull('lido_em');
   const [itens,total]=await Promise.all([query,db('notificacoes').where({usuario_id:usuarioId}).whereNull('lido_em').count({n:'*'}).first()]);
@@ -53,6 +75,6 @@ async function atualizarPreferencias(usuarioId,dados){
     if(!dados.email_notificacoes)await trx('notificacoes_email').whereIn('notificacao_id',trx('notificacoes').where({usuario_id:usuarioId}).select('id')).whereIn('status',['pendente','falhou']).update({status:'cancelado'});
   });return preferencias(usuarioId);
 }
-async function contar(usuarioId){return {nao_lidas:Number((await db('notificacoes').where({usuario_id:usuarioId}).whereNull('lido_em').count({n:'*'}).first()).n)};}
+async function contar(usuarioId){await limparExpiradas();return {nao_lidas:Number((await db('notificacoes').where({usuario_id:usuarioId}).whereNull('lido_em').count({n:'*'}).first()).n)};}
 async function autorNome(id,trx=db){const row=await trx('usuarios as u').join('pessoas as p','p.id','u.pessoa_id').where('u.id',id).select('p.apelido','p.nome_completo').first();return row?.apelido||row?.nome_completo||'A coordenação';}
-module.exports={autorNome,contar,usuariosAtivos,admins,audiencia,lideres,criar,listar,ler,lerTodas,preferencias,atualizarPreferencias};
+module.exports={limparExpiradas,excluir,iniciarLimpeza,autorNome,contar,usuariosAtivos,admins,audiencia,lideres,criar,listar,ler,lerTodas,preferencias,atualizarPreferencias};

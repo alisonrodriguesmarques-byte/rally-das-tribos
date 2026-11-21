@@ -1,6 +1,7 @@
 const service=require('../services/notificacoesService');
 const {idParam}=require('./_helpers');
 module.exports={
+ async excluir(req,res){res.json(await service.excluir(req.usuario.id,idParam(req)));},
  async contar(req,res){res.json(await service.contar(req.usuario.id));},
  async listar(req,res){res.json(await service.listar(req.usuario.id,req.query.nao_lidas==='true'));},
  async ler(req,res){res.json(await service.ler(req.usuario.id,idParam(req)));},

@@ -36,6 +36,7 @@ r.get('/notificacoes/contagem', notificacoes.contar);
 r.post('/notificacoes/ler-todas', notificacoes.lerTodas);
 r.get('/notificacoes', notificacoes.listar);
 r.post('/notificacoes/:id/ler', notificacoes.ler);
+r.delete('/notificacoes/:id', notificacoes.excluir);
 r.get('/cadastros',admin,cadastro.listar);
 r.post('/cadastros/:id/aprovar',admin,cadastro.aprovar);
 r.post('/cadastros/:id/rejeitar',admin,cadastro.rejeitar);
