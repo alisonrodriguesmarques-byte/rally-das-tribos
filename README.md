@@ -63,3 +63,7 @@ Para a hospedagem escolhida, siga [VERCEL-SUPABASE.md](docs/VERCEL-SUPABASE.md).
 ## Atualização: segurança, Google, arquivo e notificações
 
 Veja [SEGURANCA-GOOGLE-NOTIFICACOES.md](docs/SEGURANCA-GOOGLE-NOTIFICACOES.md). Migrações aditivas preservam dados em uso; exclusão de cadastro é lógica e mantém histórico. Login Google exige aprovação e vínculo por admin, e confirmação da senha ao vincular uma conta administrativa. Notificações internas funcionam sem provedor; e-mails são opcionais por usuário e podem usar Resend HTTPS no Render Free. Segredos e configuração Google/Resend são feitos nos painéis, não no GitHub.
+
+## Cadastro e notificações — atualização atual
+
+Veja [CADASTRO-E-NOTIFICACOES.md](docs/CADASTRO-E-NOTIFICACOES.md). O login oferece Criar conta com validação do admin; notificações pessoais aparecem ao acessar e ficam no histórico. Envio por e-mail e composição de avisos foram removidos. As tabelas e acessos existentes são preservados.

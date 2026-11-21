@@ -24,10 +24,10 @@ async function lideres(rallyTriboId, autorId, trx=db) {
 async function criar(ids, {tipo,titulo,mensagem,destino='#/notificacoes'}, trx=db) {
   if(!ids.length)return;
   if(!/^#\/[a-z0-9/?=&_-]*$/i.test(destino))throw requisicaoInvalida('Destino inválido.');
-  const users=await usuariosAtivos(trx).whereIn('u.id',[...new Set(ids)]).select('u.id','u.email_notificacoes');
+  const users=await usuariosAtivos(trx).whereIn('u.id',[...new Set(ids)]).select('u.id','u.email_notificacoes','p.nome_completo','p.apelido');
   for(const u of users){
-    const id=await inserir(trx,'notificacoes',{usuario_id:u.id,tipo,titulo,mensagem,destino,criado_em:agora()});
-    if(u.email_notificacoes)await inserir(trx,'notificacoes_email',{notificacao_id:id,status:'pendente',proxima_em:agora()});
+    const id=await inserir(trx,'notificacoes',{usuario_id:u.id,tipo,titulo,mensagem:`Olá 👋, ${u.apelido||u.nome_completo}! ${mensagem}`,destino,criado_em:agora()});
+
   }
 }
 async function listar(usuarioId, somenteNaoLidas=false) {
@@ -53,26 +53,6 @@ async function atualizarPreferencias(usuarioId,dados){
     if(!dados.email_notificacoes)await trx('notificacoes_email').whereIn('notificacao_id',trx('notificacoes').where({usuario_id:usuarioId}).select('id')).whereIn('status',['pendente','falhou']).update({status:'cancelado'});
   });return preferencias(usuarioId);
 }
-async function criarAviso(dados,usuario){
-  if(!usuario.admin)throw proibido();
-  const titulo=String(dados.titulo||'').trim(),mensagem=String(dados.mensagem||'').trim();
-  if(!titulo||titulo.length>150||!mensagem||mensagem.length>3000)throw requisicaoInvalida('Informe título (até 150 caracteres) e mensagem (até 3.000).');
-  const alvo=dados.alvo||'todos';if(!['todos','rally','tribo'].includes(alvo))throw requisicaoInvalida('Destino inválido.');
-  return db.transaction(async trx=>{
-    let ids;
-    if(alvo==='todos')ids=(await usuariosAtivos(trx).select('u.id')).map(u=>u.id);
-    else {
-      const rallyId=Number(dados.rally_id);if(!Number.isSafeInteger(rallyId)||!(await trx('rallies').where({id:rallyId}).first()))throw requisicaoInvalida('Rally inválido.');
-      let tribos=[];
-      if(alvo==='tribo'){
-        const id=Number(dados.rally_tribo_id);if(!Number.isSafeInteger(id)||!(await trx('rally_tribos').where({id,rally_id:rallyId}).first()))throw requisicaoInvalida('Tribo inválida para o rally.');tribos=[id];
-      }
-      ids=await audiencia(rallyId,tribos,trx);
-    }
-    await criar(ids,{tipo:'aviso',titulo,mensagem},trx);
-    await auditoria.registrar({entidade:'notificacoes',entidadeId:0,acao:'aviso',usuarioId:usuario.id,depois:{titulo,alvo,destinatarios:ids.length}},trx);
-    return {ok:true,destinatarios:ids.length};
-  });
-}
 async function contar(usuarioId){return {nao_lidas:Number((await db('notificacoes').where({usuario_id:usuarioId}).whereNull('lido_em').count({n:'*'}).first()).n)};}
-module.exports={contar,usuariosAtivos,admins,audiencia,lideres,criar,listar,ler,lerTodas,preferencias,atualizarPreferencias,criarAviso};
+async function autorNome(id,trx=db){const row=await trx('usuarios as u').join('pessoas as p','p.id','u.pessoa_id').where('u.id',id).select('p.apelido','p.nome_completo').first();return row?.apelido||row?.nome_completo||'A coordenação';}
+module.exports={autorNome,contar,usuariosAtivos,admins,audiencia,lideres,criar,listar,ler,lerTodas,preferencias,atualizarPreferencias};

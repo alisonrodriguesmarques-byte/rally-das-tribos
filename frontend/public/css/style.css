@@ -442,3 +442,13 @@ body[data-sessao="publica"] .tema-publico { display:inline-flex; }
   .rally-destaque__frase { display:none; }
   .nova-login::before,[data-tema="claro"] .nova-login::before { background-size:cover,cover; }
 }
+
+.novidades-login { max-height:60svh; overflow:auto; overflow-wrap:anywhere; }
+
+img.emblema { object-fit:contain; border-radius:0; background:transparent; }
+
+.auth-google { background:#fff!important;color:#1c2638!important;border-color:#cbd5e1!important;gap:.65rem;justify-content:center; }
+.google-g { font:bold 21px Arial,sans-serif;color:#4285f4; }
+.auth-ou { display:flex;align-items:center;gap:1rem;color:var(--suave);margin:1.2rem 0; }
+.auth-ou::before,.auth-ou::after { content:'';height:1px;background:#7893a455;flex:1; }
+.login__apoio a { font-weight:700;text-decoration:underline; }

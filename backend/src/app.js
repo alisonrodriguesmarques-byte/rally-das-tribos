@@ -14,6 +14,7 @@ function criarApp() {
   app.use(seguranca.headers);
   app.use(seguranca.protegerRequisicao);
   app.use('/api', seguranca.apiLimiter);
+  app.use('/api/auth/cadastro', require('express-rate-limit').rateLimit({windowMs:900000,limit:30,standardHeaders:true,legacyHeaders:false,message:{erro:'Muitos pedidos. Aguarde 15 minutos.'}}));
   app.use('/api/auth/login', seguranca.loginLimiter);
   app.use('/api/auth/senha', seguranca.loginLimiter);
   app.use('/api/google-vinculos', seguranca.loginLimiter);

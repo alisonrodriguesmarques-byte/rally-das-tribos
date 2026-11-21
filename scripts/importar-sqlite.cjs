@@ -3,7 +3,7 @@ const path=require('node:path');
 const Sqlite=require('../backend/node_modules/better-sqlite3');
 const config=require('../backend/src/config');
 const db=require('../backend/src/database/connection');
-const tables=['pessoas','usuarios','rallies','tribos','rally_tribos','membros_tribo','categorias','lancamentos','lancamentos_historico','auditoria','missoes','missao_tribos','missao_entregas','dinamicas','provas','prova_tribos','questoes','alternativas','respostas_aceitas','tentativas','respostas','prova_resultados','encontros','presencas','relatorios_almas','google_vinculos','notificacoes','notificacoes_email'];
+const tables=['pessoas','usuarios','rallies','tribos','rally_tribos','membros_tribo','categorias','lancamentos','lancamentos_historico','auditoria','missoes','missao_tribos','missao_entregas','dinamicas','provas','prova_tribos','questoes','alternativas','respostas_aceitas','tentativas','respostas','prova_resultados','encontros','presencas','relatorios_almas','google_vinculos','notificacoes','notificacoes_email','cadastros_pendentes'];
 (async()=>{
  let source;
  try{

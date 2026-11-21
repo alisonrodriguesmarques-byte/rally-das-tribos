@@ -1,0 +1,2 @@
+const s=require('../services/cadastroService'),{idParam}=require('./_helpers');
+module.exports={async solicitar(req,res){res.status(201).json(await s.solicitar(req.body||{}));},async listar(req,res){res.json(await s.listar());},async aprovar(req,res){res.json(await s.aprovar(idParam(req),req.body||{},req.usuario.id));},async rejeitar(req,res){res.json(await s.rejeitar(idParam(req),req.usuario.id));},async criarGoogle(req,res){res.json(await s.criarGoogle(idParam(req),req.body||{},req.usuario.id));}};

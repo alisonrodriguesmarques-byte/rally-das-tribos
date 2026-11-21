@@ -1,3 +1,5 @@
+> Atualização: além de vincular uma conta existente, o admin pode validar e criar uma conta de membro para o cadastro Google. Confira docs/CADASTRO-E-NOTIFICACOES.md.
+
 # Login Google com aprovação da coordenação
 
 O login por e-mail e senha continua funcionando. Google é opcional e não substitui os usuários existentes. Uma identidade Google nunca é vinculada automaticamente só porque o e-mail parece igual ao de uma conta cadastrada.

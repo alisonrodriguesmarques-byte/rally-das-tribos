@@ -77,7 +77,7 @@ async function avaliar(id, dados, usuario) {
     const dadosNovos = { status: dados.acao === 'conferir' ? 'conferido' : 'rascunho', avaliado_por: usuario.id, avaliado_em: agora(), atualizado_em: agora(), observacao_admin: dados.acao === 'devolver' ? String(dados.motivo).trim() : null };
     await trx('relatorios_almas').where({ id }).update(dadosNovos);
     await auditoria.registrar({ entidade: 'relatorios_almas', entidadeId: id, acao: dados.acao, usuarioId: usuario.id, antes: r, depois: dadosNovos }, trx);
-    if (dados.acao === 'devolver') await notificacoes.criar(await notificacoes.lideres(r.rally_tribo_id,r.responsavel_id,trx), {tipo:'relatorio_devolvido',titulo:'Relatório devolvido para correção',mensagem:'O relatório da sua tribo foi devolvido. Consulte as orientações do administrador e faça a correção.',destino:`#/almas?rally_id=${r.rally_id}&semana=${paraData(r.semana_inicio)}`},trx);
+    if (dados.acao === 'devolver') await notificacoes.criar(await notificacoes.lideres(r.rally_tribo_id,r.responsavel_id,trx), {tipo:'relatorio_devolvido',titulo:'Relatório devolvido para correção',mensagem:`${await notificacoes.autorNome(usuario.id,trx)} devolveu seu relatório.\nMotivo: ${String(dados.motivo).trim()}`,destino:`#/almas?rally_id=${r.rally_id}&semana=${paraData(r.semana_inicio)}`},trx);
     return { ok: true };
   });
 }

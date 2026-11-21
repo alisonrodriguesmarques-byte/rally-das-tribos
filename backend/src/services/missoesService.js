@@ -59,7 +59,7 @@ async function criar(rallyId, dados, usuario) {
     const id = await missaoRepo.criar({ ...campos, rally_id: rallyId, criado_por: usuario.id, todas_tribos: !tribos.length }, trx);
     await missaoRepo.definirTribos(id, tribos, trx);
     if (!campos.status || campos.status === 'aberta') await notificacoes.criar(await notificacoes.audiencia(rallyId, tribos, trx), {
-      tipo:'missao_criada', titulo:'Nova missão disponível', mensagem:'Uma nova missão foi publicada para sua participação. Abra a missão para consultar as orientações.', destino:`#/missoes/${id}?rally_id=${rallyId}`,
+      tipo:'missao_criada', titulo:'Nova missão disponível', mensagem:`${await notificacoes.autorNome(usuario.id,trx)} disponibilizou uma nova missão: ${campos.titulo}.`, destino:`#/missoes/${id}?rally_id=${rallyId}`,
     }, trx);
     return id;
   });

@@ -7,5 +7,4 @@ module.exports={
  async lerTodas(req,res){res.json(await service.lerTodas(req.usuario.id));},
  async preferencias(req,res){res.json(await service.preferencias(req.usuario.id));},
  async atualizarPreferencias(req,res){res.json(await service.atualizarPreferencias(req.usuario.id,req.body||{}));},
- async criarAviso(req,res){res.status(201).json(await service.criarAviso(req.body||{},req.usuario));},
 };

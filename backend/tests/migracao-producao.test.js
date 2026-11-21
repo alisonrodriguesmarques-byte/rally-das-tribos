@@ -10,7 +10,7 @@ test('migrações aditivas preservam dados e senhas de uma instalação existent
   await db('lancamentos').insert({id:23,rally_id:9,rally_tribo_id:8,pontos:1800,motivo:'Histórico',origem_tipo:'manual',data_referencia:'2026-02-01',criado_por:12});
   await db('relatorios_almas').insert({id:31,rally_id:9,rally_tribo_id:8,semana_inicio:'2026-02-02',semana_fim:'2026-02-08',dias_json:'[]',novas:4,afastadas:3,responsavel_id:12,responsavel_nome:'Pessoa histórica',atualizado_em:'2026-02-08'});
   const tables=['pessoas','usuarios','rallies','tribos','rally_tribos','lancamentos','relatorios_almas'];const before={};for(const t of tables)before[t]=await db(t).select('*');
-  await require('../src/database/migrations/003_seguranca_google_arquivamento').up(db);await require('../src/database/migrations/004_notificacoes').up(db);
+  await require('../src/database/migrations/003_seguranca_google_arquivamento').up(db);await require('../src/database/migrations/004_notificacoes').up(db);await require('../src/database/migrations/005_cadastros_pendentes').up(db);
   for(const t of tables){const after=await db(t).select('*');for(let i=0;i<after.length;i++)for(const key of Object.keys(before[t][i]))assert.deepEqual(after[i][key],before[t][i][key],t+'.'+key);}
   assert.equal((await db('usuarios').first()).email_notificacoes,0);assert.equal((await db('usuarios').first()).auth_versao,0);assert.equal((await db('rallies').first()).arquivado_em,null);
  }finally{await db.destroy();}

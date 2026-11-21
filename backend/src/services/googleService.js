@@ -53,7 +53,7 @@ async function processarIdentidade(identity){
 async function concluir(code,state,cookie){return processarIdentidade(await identidadeGoogle(code,state,cookie));}
 async function listar(){
  const vinculos=await db('google_vinculos as g').leftJoin('usuarios as u','u.id','g.usuario_id').leftJoin('pessoas as p','p.id','u.pessoa_id').select('g.id','g.email','g.nome','g.status','g.usuario_id','g.criado_em','g.atualizado_em','u.email as conta_email','p.nome_completo as pessoa_nome').orderBy('g.criado_em','desc');
- const contas=await db('usuarios as u').join('pessoas as p','p.id','u.pessoa_id').where({'u.ativo':true,'p.ativo':true}).whereNull('p.excluido_em').select('u.id','u.email','u.papel','p.nome_completo').orderBy('p.nome_completo');return {vinculos,contas};
+ const contas=await db('usuarios as u').join('pessoas as p','p.id','u.pessoa_id').where({'u.ativo':true,'p.ativo':true}).whereNull('p.excluido_em').select('u.id','u.email','u.papel','p.nome_completo').orderBy('p.nome_completo');const pessoas=await db('pessoas as p').leftJoin('usuarios as u','u.pessoa_id','p.id').whereNull('u.id').whereNull('p.excluido_em').where('p.ativo',true).select('p.id','p.nome_completo');return {vinculos,contas,pessoas};
 }
 async function aprovar(id,usuarioId,atorId,senhaAdminAtual){
  if(!Number.isSafeInteger(usuarioId)||usuarioId<1)throw requisicaoInvalida('Selecione uma conta existente.');
