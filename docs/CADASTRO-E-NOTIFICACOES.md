@@ -1,3 +1,5 @@
+> Atualização: a opção Continuar com Google foi temporariamente ocultada das telas de entrada e cadastro. O formulário por e-mail e senha e a validação do admin continuam ativos. Vínculos e dados Google existentes foram preservados.
+
 # Cadastro validado e notificações no acesso
 
 ## Mudanças em produção
