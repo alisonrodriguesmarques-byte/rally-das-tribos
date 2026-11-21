@@ -27,7 +27,7 @@ Pedidos por formulário não verificam e-mail automaticamente: essa verificaçã
 
 ## Retenção e controles atuais
 
-O item Validar cadastros está temporariamente oculto no menu lateral e em Mais; as contas, solicitações e aprovação não foram apagadas. Administradores ainda podem acessar a aprovação pelo aviso recebido ou pelo endereço interno #/cadastros.
+O item Validar cadastros está disponível no menu lateral e em Mais para o administrador. Contas Google está temporariamente oculto dos menus e da página de validação; os vínculos e dados existentes não foram apagados. A expiração de notificações, exclusão individual e contador do sino continuam ativos.
 
 Notificações lidas ou não lidas expiram após 7 dias de sua criação. A aplicação limpa os registros vencidos na inicialização, a cada hora enquanto o servidor está ativo e ao consultar notificações/contador. Se o Render estiver suspenso, a limpeza ocorre quando o serviço voltar; avisos vencidos são removidos antes da consulta. Exclui somente notificações e metadados da antiga fila vinculados a elas, sem alterar missões, relatórios, pontos ou cadastros. Backups anteriores seguem sua retenção própria.
 
